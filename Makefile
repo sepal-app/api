@@ -5,6 +5,9 @@ VENV_BIN := venv/bin
 
 GIT_DIRTY := $(shell git diff)
 GIT_HASH := $(shell git rev-parse --short HEAD)
+PYTHONPATH := .
+
+.PHONY: db\:init db\:migrate db\:upgrade deps\:update server\:start test check-git-dirty
 
 check-git-dirty:
 ifneq ($(GIT_DIRTY),)
@@ -12,18 +15,35 @@ ifneq ($(GIT_DIRTY),)
 	@exit 1
 endif
 
-venv: # requirements/dev.txt
+# TODO: require python 3.8
+venv: requirements/dev.txt
 	python3 -m venv venv
-	$(VENV_BIN)/pip install -U pip
-#	$(VENV_BIN)/pip install -r requirements/dev.txt
+	$(VENV_BIN)/pip install -U pip pip-tools
+	$(VENV_BIN)/pip install -r requirements/dev.txt
 	touch $@ # update timestamp in case the folder already existed
 
 test:
 	tox -q
 
-update-deps:
-	$(VENV_BIN)/pip-compile requirements/dev.in
-	$(VENV_BIN)/pip-compile requirements/prod.in
+deps\:install:
 	$(VENV_BIN)/pip-sync requirements/dev.txt
 
-.PHONY: test check-git-dirty update-deps
+deps\:update:
+	$(VENV_BIN)/pip-compile requirements/dev.in
+	$(VENV_BIN)/pip-compile requirements/prod.in
+	make deps:install
+
+db\:init:
+	@echo init db...
+
+db\:migrate:
+	@echo generating migrations...
+	PYTHONPATH=. alembic -c migrations/alembic.ini revision --autogenerate $*
+
+db\:upgrade:
+	@echo upgrading...
+	alembic -c migrations/alembic.ini upgrade head
+
+server\:start:
+	uvicorn sepal.app:app --reload
+

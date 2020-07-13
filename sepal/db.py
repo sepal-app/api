@@ -1,44 +1,65 @@
-# -*- coding: utf-8 -*-
-"""Database module, including the SQLAlchemy database object and DB-related utilities."""
-from .extensions import db
+import re
 
-# Alias common SQLAlchemy names
-Column = db.Column
-relationship = db.relationship
+from databases import Database
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    Table as BaseTable,
+    create_engine,
+)
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
+from sqlalchemy.orm import Query, sessionmaker
+from sqlalchemy.sql import expression
 
+from sepal.settings import settings
 
-class CRUDMixin(object):
-    """Mixin that adds convenience methods for CRUD (create, read, update, delete) operations."""
+engine = create_engine(settings.database_url)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    @classmethod
-    def create(cls, **kwargs):
-        """Create a new record and save it the database."""
-        instance = cls(**kwargs)
-        return instance.save()
-
-    def update(self, commit=True, **kwargs):
-        """Update specific fields of a record."""
-        for attr, value in kwargs.items():
-            setattr(self, attr, value)
-        return commit and self.save() or self
-
-    def save(self, commit=True):
-        """Save the record."""
-        db.session.add(self)
-        if commit:
-            db.session.commit()
-        return self
-
-    def delete(self, commit=True):
-        """Remove the record from the database."""
-        db.session.delete(self)
-        return commit and db.session.commit()
+db = Database(settings.database_url)
 
 
-class Model(CRUDMixin, db.Model):
-    """Base model class that includes CRUD convenience methods."""
+class BaseMetaclass(DeclarativeMeta):
+    @property
+    def query(cls):
+        return Query(cls)
 
-    __abstract__ = True
+
+Base = declarative_base(metaclass=BaseMetaclass)
+metadata = Base.metadata  # used by alembic for migrations
+
+
+class utcnow(expression.FunctionElement):
+    """Expression to return the sql for now() in UTC"""
+
+    type = DateTime()
+
+
+@compiles(utcnow, "postgresql")
+def pg_utcnow(element, compiler, **kw):
+    return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
+
+
+def Table(table_name, *args, **kwargs):
+    return BaseTable(
+        table_name,
+        metadata,
+        Column("id", Integer, primary_key=True),
+        Column("created_at", DateTime, server_default=utcnow(), nullable=False),
+        Column(
+            "updated_at",
+            DateTime,
+            server_default=utcnow(),
+            nullable=False,
+            onupdate=utcnow(),
+        ),
+        *args,
+        **kwargs,
+    )
 
 
 # From Mike Bayer's "Building the app" talk
@@ -48,7 +69,7 @@ class IdMixin(object):
 
     __table_args__ = {"extend_existing": True}
 
-    id = Column(db.Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     @classmethod
     def get_by_id(cls, record_id):
@@ -61,6 +82,38 @@ class IdMixin(object):
         ):
             return cls.query.get(int(record_id))
         return None
+
+
+class TimestampMixin:
+    """A mixin that adds ``created_at`` and ``updated_at`` timestamps to a to any declarative-mapped class."""
+
+    __table_args__ = {"extend_existing": True}
+
+    created_at = Column(DateTime, server_default=utcnow(), nullable=False)
+    updated_at = Column(
+        DateTime, server_default=utcnow(), nullable=False, onupdate=utcnow()
+    )
+
+
+class BaseModel(Base):
+    """Base model class that includes CRUD convenience methods."""
+
+    __abstract__ = True
+
+    @declared_attr
+    def __tablename__(cls):
+        # return underscore cased class name
+        return re.sub("(?!^)([A-Z]+)", r"_\1", cls.__name__).lower()
+
+    # @property
+    # def query(cls):
+    #     return Query(cls)
+
+
+class Model(TimestampMixin, IdMixin, BaseModel):
+    """Base model class that includes CRUD convenience methods."""
+
+    __abstract__ = True
 
 
 def reference_col(
@@ -77,7 +130,7 @@ def reference_col(
     column_kwargs = column_kwargs or {}
 
     return Column(
-        db.ForeignKey(f"{tablename}.{pk_name}", **foreign_key_kwargs),
+        ForeignKey(f"{tablename}.{pk_name}", **foreign_key_kwargs),
         nullable=nullable,
         **column_kwargs,
     )

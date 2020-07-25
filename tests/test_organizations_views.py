@@ -7,7 +7,7 @@ from .fixtures import *
 def test_org_create(client, auth_header, make_token, current_user_id):
     data = {"name": make_token()}
     resp = client.post("/orgs", headers=auth_header, json=data)
-    assert resp.status_code == 200
+    assert resp.status_code == 201
     org_json = resp.json()
     assert org_json["name"] == data["name"]
 
@@ -24,7 +24,6 @@ def test_org_detail(client, auth_header, org):
     resp = client.get(f"/orgs/{org.id}", headers=auth_header)
     assert resp.status_code == 200
     org_json = resp.json()
-    print(org_json)
     assert org_json["id"] == org.id
     assert org_json["name"] == org.name
 

@@ -109,8 +109,6 @@ def org(session, current_user_id):
     org_user = OrganizationUser(organization_id=org.id, user_id=current_user_id)
     session.add(org_user)
     session.commit()
-    print(org_user.organization_id)
-    print(org_user.user_id)
     return org
 
 

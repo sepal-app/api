@@ -15,7 +15,7 @@ async def list(current_user_id=Depends(get_current_user)) -> List[OrganizationIn
     return await get_user_organizations(current_user_id)
 
 
-@router.post("", response_model=OrganizationInDB)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create(
     org: OrganizationCreate, current_user_id=Depends(get_current_user)
 ) -> OrganizationInDB:

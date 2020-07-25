@@ -1,9 +1,9 @@
 from functools import lru_cache
-from typing import Any, Dict, List
+from typing import Dict, List
 from urllib.request import urlopen
 
 import orjson as json
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from jose import jwt
 
 from sepal.settings import settings
@@ -88,6 +88,10 @@ def decode_token(token: str = Depends(get_auth_header_token)):
         raise AuthError(
             code="invalid_header", description="Unable to parse authentication token.",
         )
+
+
+def get_current_user(payload=Depends(decode_token)):
+    return payload.get("sub", None)
 
 
 def require_scopes(required_scopes: List[str]):

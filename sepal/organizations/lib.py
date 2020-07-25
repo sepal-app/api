@@ -1,16 +1,51 @@
-from typing import Optional
+from typing import List, Optional
 
 from passlib.context import CryptContext
 
-from sepal.db import Query, db
+from sepal.db import db
 
-# from .models import User as UserModel, user_table
-# from .schema import User, UserInDB
+from .models import organization_table, organization_user_table
+from .schema import OrganizationCreate, OrganizationInDB
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-async def get_organization_by_id(org_id: str):
-    q = organization_table.select().where(organization_table.c.id == org_id)
+def user_organizations_query(user_id: str):
+    return (
+        organization_table.join(
+            organization_user_table,
+            organization_table.c.id == organization_user_table.c.organization_id,
+        )
+        .select()
+        .where(organization_user_table.c.user_id == user_id)
+    )
+
+
+async def get_organization_by_id(
+    org_id: int, user_id: Optional[str] = None
+) -> OrganizationInDB:
+    q = (
+        user_organizations_query(user_id).where(organization_table.c.id == org_id)
+        if user_id is not None
+        else organization_table.select().where(organization_table.c.id == org_id)
+    )
     data = await db.fetch_one(q)
     return OrganizationInDB(**data) if data else None
+
+
+async def get_user_organizations(user_id: str) -> List[OrganizationInDB]:
+    q = user_organizations_query(user_id)
+    data = await db.fetch_all(q)
+    return [OrganizationInDB(**d) for d in data]
+
+
+async def create_organization(
+    user_id: str, org: OrganizationCreate
+) -> OrganizationInDB:
+    async with db.transaction():
+        org_id = await db.execute(organization_table.insert(), values=org.dict())
+        await db.execute(
+            organization_user_table.insert(),
+            values={"organization_id": org_id, "user_id": user_id},
+        )
+        return await get_organization_by_id(org_id)

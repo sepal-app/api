@@ -18,9 +18,7 @@ from sqlalchemy.orm import backref, object_mapper, relationship
 
 from sepal.db import (
     BaseModel,
-    IdMixin,
     Model,
-    TimestampMixin,
     db,
     reference_col,
     utcnow,
@@ -37,14 +35,24 @@ class Organization(Model):
     state = Column(String(64))
     country = Column(String(64))
     postal_code = Column(String(32))
-
-    # users = association_proxy(
-    #     "organization_users", "user", creator=lambda user: OrganizationUser(user=user)
-    # )
-
     date_approved = Column(DateTime)
-    date_created = Column(DateTime, default=utcnow())
+    date_created = Column(DateTime, server_default=utcnow())
     date_suspended = Column(DateTime)
 
 
 organization_table = Organization.__table__
+
+
+class OrganizationUser(BaseModel):
+    user_id = Column(String, nullable=False, primary_key=True)
+    organization_id = Column(
+        Integer, ForeignKey("organization.id"), nullable=False, primary_key=True
+    )
+
+    organization = relationship(
+        "Organization",
+        backref=backref("organization_users", cascade="all, delete-orphan"),
+    )
+
+
+organization_user_table = OrganizationUser.__table__

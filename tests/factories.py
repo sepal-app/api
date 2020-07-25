@@ -3,18 +3,15 @@ import factory.fuzzy
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 import sepal.db as db
-from sepal.users.models import User
+from sepal.organizations.models import Organization
 
-
-# session = db.Session()
 Session = scoped_session(sessionmaker(bind=db.engine))
 
 
-class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
+class OrganizationFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
-        model = User
+        model = Organization
         sqlalchemy_session = Session
         sqlalchemy_session_persistence = "commit"
 
-    username = factory.fuzzy.FuzzyText(prefix="user")
-    email = factory.Faker("email")
+    name = factory.fuzzy.FuzzyText()

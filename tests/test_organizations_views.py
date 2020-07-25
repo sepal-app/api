@@ -4,7 +4,7 @@ from .factories import OrganizationFactory
 from .fixtures import *
 
 
-def test_org_create(client, auth_header, make_token):
+def test_org_create(client, auth_header, make_token, current_user_id):
     data = {"name": make_token()}
     resp = client.post("/orgs", headers=auth_header, json=data)
     assert resp.status_code == 200
@@ -35,7 +35,7 @@ def test_org_detail_missing(client, auth_header, org):
     assert resp.status_code == 404
 
 
-def test_org_detail_not_authorized(client, session, auth_header):
+def test_org_detail_not_authorized(client, session, current_user_id, auth_header):
     org = OrganizationFactory()  # user is not a member of this org
     session.add(org)
     session.commit()

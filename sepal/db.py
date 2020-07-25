@@ -1,15 +1,9 @@
 import re
 
 from databases import Database
-from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    MetaData,
-    Table as BaseTable,
-    create_engine,
-)
+from sqlalchemy import Column, DateTime, ForeignKey, Integer
+from sqlalchemy import Table as BaseTable
+from sqlalchemy import create_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
 from sqlalchemy.orm import Query, sessionmaker
@@ -34,7 +28,7 @@ metadata = Base.metadata  # used by alembic for migrations
 
 
 class utcnow(expression.FunctionElement):
-    """Expression to return the sql for now() in UTC"""
+    """Expression to return the sql for now() in UTC."""
 
     type = DateTime()
 
@@ -65,7 +59,7 @@ def Table(table_name, *args, **kwargs):
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
 class IdMixin(object):
-    """A mixin that adds a surrogate integer 'primary key' column named ``id`` to any declarative-mapped class."""
+    """A mixin that adds a surrogate integer 'primary key' column named ``id``."""
 
     __table_args__ = {"extend_existing": True}
 
@@ -85,7 +79,7 @@ class IdMixin(object):
 
 
 class TimestampMixin:
-    """A mixin that adds ``created_at`` and ``updated_at`` timestamps to a to any declarative-mapped class."""
+    """A mixin that adds ``created_at`` and ``updated_at`` timestamps columns."""
 
     __table_args__ = {"extend_existing": True}
 

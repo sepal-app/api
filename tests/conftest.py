@@ -1,5 +1,3 @@
-import asyncio
-
 import sepal.db as db
 import sepal.models
 

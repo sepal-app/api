@@ -1,0 +1,7 @@
+flake8-blind-except==0.1.1
+flake8-debugger==3.2.1
+flake8-docstrings==1.5.0
+# Disabling flake8-isort b/c it doesn't know how to use tox.ini
+# flake8-isort==3.0.1
+flake8-quotes==3.2.0
+flake8==3.8.3

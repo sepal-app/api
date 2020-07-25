@@ -1,28 +1,7 @@
-from typing import Iterator
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import backref, relationship
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    and_,
-    cast,
-    func,
-    text,
-    type_coerce,
-)
-import sqlalchemy.dialects.postgresql as pg
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, object_mapper, relationship
-
-from sepal.db import (
-    BaseModel,
-    Model,
-    db,
-    reference_col,
-    utcnow,
-)
+from sepal.db import BaseModel, Model, utcnow
 
 # from sepal.users.models import User
 

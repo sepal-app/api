@@ -29,6 +29,7 @@ deps\:install:
 	$(VENV_BIN)/pip-sync requirements/dev.txt
 
 deps\:update:
+	$(VENV_BIN)/pip-compile requirements/lint.in
 	$(VENV_BIN)/pip-compile requirements/dev.in
 	$(VENV_BIN)/pip-compile requirements/prod.in
 	make deps:install

@@ -18,8 +18,7 @@ class AuthError(HTTPException):
 
 
 def get_auth_header_token(auth: str = Header(None, alias="authorization")):
-    """Obtains the Access Token from the Authorization Header
-    """
+    """Return the access token from the authorization header."""
     if not auth:
         raise AuthError(
             code="authorization_header_missing",

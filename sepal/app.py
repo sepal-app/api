@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# from .oauth2.views import router as oauth2_router
-from .organizations.views import router as orgs_router
+from .db import db
+
+from .organization.views import router as orgs_router
 
 origins = [
     "http://localhost:3000",
@@ -10,6 +11,17 @@ origins = [
 ]
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def startup():
+    await db.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await db.disconnect()
+
 
 app.add_middleware(
     CORSMiddleware,

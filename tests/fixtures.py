@@ -7,7 +7,7 @@ import sepal.db as _db
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser
 
-from .factories import OrganizationFactory, Session
+from .factories import OrganizationFactory, Session, TaxonFactory
 
 
 @pytest.fixture
@@ -67,3 +67,8 @@ def org(session, current_user_id):
     session.add(org_user)
     session.commit()
     return org
+
+
+@pytest.fixture
+def taxon(org):
+    return TaxonFactory(org_id=org.id)

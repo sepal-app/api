@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import db
 
-from .organization.views import router as orgs_router
+from .organizations.views import router as orgs_router
+from .taxa.views import router as taxa_router
 
 origins = [
     "http://localhost:3000",
@@ -31,3 +32,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(orgs_router, prefix="/orgs")
+app.include_router(taxa_router, prefix="/orgs/{org_id}/taxa")

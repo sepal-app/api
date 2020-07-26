@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from passlib.context import CryptContext
+from sqlalchemy import exists, select
 
 from sepal.db import db
 
@@ -19,6 +20,11 @@ def user_organizations_query(user_id: str):
         .select()
         .where(organization_user_table.c.user_id == user_id)
     )
+
+
+async def is_organization_member(org_id: int, user_id: str):
+    q = select([exists(user_organizations_query(user_id))])
+    return (await db.fetch_one(q))[0]
 
 
 async def get_organization_by_id(

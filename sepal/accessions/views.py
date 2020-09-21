@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 
@@ -13,12 +13,14 @@ router = APIRouter()
 
 @router.get("")
 async def list(
-    current_user_id=Depends(get_current_user), org_id=Depends(verify_org_id),
+    current_user_id=Depends(get_current_user),
+    org_id=Depends(verify_org_id),
+    q: Optional[str] = None,
 ) -> List[AccessionInDB]:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return await get_accessions(org_id)
+    return await get_accessions(org_id, q)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -26,7 +28,6 @@ async def create(
     accession: AccessionCreate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-    # response=Response,
 ) -> AccessionInDB:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

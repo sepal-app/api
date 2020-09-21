@@ -19,11 +19,14 @@ async def get_accession_by_id(
     return AccessionInDB(**data) if data else None
 
 
-async def get_accessions(org_id: str) -> List[AccessionInDB]:
+async def get_accessions(
+    org_id: str, query: Optional[str] = None
+) -> List[AccessionInDB]:
     # TODO: pagination
     q = accession_table.select().where(accession_table.c.org_id == org_id)
+    if query is not None:
+        q = q.where(accession_table.c.code.ilike(query))
     data = await db.fetch_all(q)
-    print(data)
     return [AccessionInDB(**d) for d in data]
 
 

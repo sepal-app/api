@@ -1,14 +1,24 @@
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from passlib.context import CryptContext
 from sqlalchemy import exists, select
 
+from sepal.auth import get_current_user
 from sepal.db import db
 
 from .models import organization_table, organization_user_table
 from .schema import OrganizationCreate, OrganizationInDB
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+async def verify_org_id(
+    current_user_id=Depends(get_current_user), org_id: int = Path(...),
+):
+    print("current_user_id: {current_user_id}")
+    is_member = await is_organization_member(org_id, current_user_id)
+    return org_id if is_member else None
 
 
 def user_organizations_query(user_id: str):

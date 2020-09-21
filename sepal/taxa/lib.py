@@ -17,11 +17,12 @@ async def get_taxon_by_id(taxon_id: int, org_id: Optional[str] = None) -> TaxonI
     return TaxonInDB(**data) if data else None
 
 
-async def get_taxa(org_id: str) -> List[TaxonInDB]:
+async def get_taxa(org_id: str, query: Optional[str] = None) -> List[TaxonInDB]:
     # TODO: pagination
     q = taxon_table.select().where(taxon_table.c.org_id == org_id)
+    if query is not None:
+        q = q.where(taxon_table.c.name.ilike(query))
     data = await db.fetch_all(q)
-    print(data)
     return [TaxonInDB(**d) for d in data]
 
 

@@ -21,7 +21,7 @@ ecdsa==0.15               # via python-jose
 environs==8.0.0           # via -r requirements/dev.in
 factory-boy==2.12.0       # via -r requirements/dev.in
 faker==4.1.1              # via factory-boy
-fastapi==0.60.1           # via -r requirements/prod.in
+fastapi==0.61.1           # via -r requirements/prod.in
 filelock==3.0.12          # via tox, virtualenv
 flake8-blind-except==0.1.1  # via -r requirements/lint.in
 flake8-debugger==3.2.1    # via -r requirements/lint.in

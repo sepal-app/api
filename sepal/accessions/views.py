@@ -1,11 +1,11 @@
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 
 from sepal.auth import get_current_user
 
-from .lib import create_taxon, get_taxon_by_id, get_taxa
-from .schema import TaxonCreate, TaxonInDB
+from .lib import create_accession, get_accession_by_id, get_accessions
+from .schema import AccessionCreate, AccessionInDB
 from sepal.organizations.lib import is_organization_member, verify_org_id
 
 router = APIRouter()
@@ -13,38 +13,37 @@ router = APIRouter()
 
 @router.get("")
 async def list(
-    current_user_id=Depends(get_current_user),
-    org_id=Depends(verify_org_id),
-    q: Optional[str] = None,
-) -> List[TaxonInDB]:
+    current_user_id=Depends(get_current_user), org_id=Depends(verify_org_id),
+) -> List[AccessionInDB]:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return await get_taxa(org_id, q)
+    return await get_accessions(org_id)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create(
-    taxon: TaxonCreate,
+    accession: AccessionCreate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-) -> TaxonInDB:
+    # response=Response,
+) -> AccessionInDB:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return await create_taxon(org_id, taxon)
+    return await create_accession(org_id, accession)
 
 
-@router.get("/{taxon_id}")
+@router.get("/{accession_id}")
 async def detail(
-    taxon_id: int,
+    accession_id: int,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-) -> TaxonInDB:
+) -> AccessionInDB:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    taxon = await get_taxon_by_id(taxon_id, org_id)
-    if taxon is None:
+    accession = await get_accession_by_id(accession_id, org_id)
+    if accession is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return taxon
+    return accession

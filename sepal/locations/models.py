@@ -12,5 +12,8 @@ class Location(Model):
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
 
     organization = relationship(
-        "Organization", backref=backref("accessions", cascade="all, delete-orphan")
+        "Organization", backref=backref("locations", cascade="all, delete-orphan")
     )
+
+
+location_table = Location.__table__

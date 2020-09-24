@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import db
 
+from .accessions.views import router as accessions_router
+from .locations.views import router as locations_router
 from .organizations.views import router as orgs_router
 from .taxa.views import router as taxa_router
-from .accessions.views import router as accessions_router
 
 origins = [
     "http://localhost:3000",
@@ -32,6 +33,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(accessions_router, prefix="/v1/orgs/{org_id}/accessions")
+app.include_router(locations_router, prefix="/v1/orgs/{org_id}/locations")
 app.include_router(orgs_router, prefix="/v1/orgs")
 app.include_router(taxa_router, prefix="/v1/orgs/{org_id}/taxa")
-app.include_router(accessions_router, prefix="/v1/orgs/{org_id}/accessions")

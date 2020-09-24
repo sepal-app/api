@@ -8,8 +8,8 @@ from sepal.db import BaseModel, Model
 
 class Accession(Model):
     code = Column(String(64), nullable=False)
-    taxon_id = Column(Integer, ForeignKey("taxon.id"), nullable=False)
 
+    taxon_id = Column(Integer, ForeignKey("taxon.id"), nullable=False)
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
 
     organization = relationship(
@@ -27,18 +27,15 @@ AccessionItemType = enum.Enum(
 
 class AccessionItem(Model):
     code = Column(String(12), nullable=False)
+    item_type = Column(String, Enum(AccessionItemType), nullable=False)
+
     accession_id = Column(Integer, ForeignKey("accession.id"), nullable=False)
     location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
-    item_type = Column(String, Enum(AccessionItemType))
-    # location = modes.ForeignKey()
-    # rank = Column(String(128), nullable=False)
-
-    # parent_id = Column(Integer, ForeignKey("taxon.id"), nullable=True)
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
 
-    # organization = relationship(
-    #     "Organization", backref=backref("taxa", cascade="all, delete-orphan")
-    # )
+    organization = relationship(
+        "Organization", backref=backref("accession_items", cascade="all, delete-orphan")
+    )
 
 
 accession_item_table = AccessionItem.__table__

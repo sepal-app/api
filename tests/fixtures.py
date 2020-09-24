@@ -7,7 +7,14 @@ import sepal.db as _db
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser
 
-from .factories import OrganizationFactory, Session, TaxonFactory
+from .factories import (
+    AccessionFactory,
+    AccessionItemFactory,
+    LocationFactory,
+    OrganizationFactory,
+    Session,
+    TaxonFactory,
+)
 
 
 @pytest.fixture
@@ -72,3 +79,20 @@ def org(session, current_user_id):
 @pytest.fixture
 def taxon(org):
     return TaxonFactory(org_id=org.id)
+
+
+@pytest.fixture
+def location(org):
+    return LocationFactory(org_id=org.id)
+
+
+@pytest.fixture
+def accession(org, taxon):
+    return AccessionFactory(org_id=org.id, taxon_id=taxon.id)
+
+
+@pytest.fixture
+def accession_item(org, accession, location):
+    return AccessionItemFactory(
+        org_id=org.id, accession_id=accession.id, location_id=location.id
+    )

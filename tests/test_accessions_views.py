@@ -1,6 +1,5 @@
 from random import randint
 
-from .factories import OrganizationFactory
 from .fixtures import *
 
 

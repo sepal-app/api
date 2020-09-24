@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from fastapi import Depends, Path
 from passlib.context import CryptContext
 from sqlalchemy import exists, select
 

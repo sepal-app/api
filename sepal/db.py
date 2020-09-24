@@ -96,6 +96,7 @@ class BaseModel(Base):
 
     @declared_attr
     def __tablename__(cls):
+        """Return the table name of the model."""
         # return underscore cased class name
         return re.sub("(?!^)([A-Z]+)", r"_\1", cls.__name__).lower()
 

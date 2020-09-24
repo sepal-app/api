@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from passlib.context import CryptContext
-
 from sepal.db import db
 
 from .models import location_table

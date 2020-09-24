@@ -1,12 +1,12 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from sepal.auth import get_current_user
 
 from .lib import create_accession, get_accession_by_id, get_accessions
 from .schema import AccessionCreate, AccessionInDB
-from sepal.organizations.lib import is_organization_member, verify_org_id
+from sepal.organizations.lib import verify_org_id
 
 router = APIRouter()
 

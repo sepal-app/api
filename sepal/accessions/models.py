@@ -1,9 +1,9 @@
 import enum
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 
-from sepal.db import BaseModel, Model
+from sepal.db import Model
 
 
 class Accession(Model):

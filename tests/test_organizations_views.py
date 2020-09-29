@@ -1,7 +1,7 @@
 from random import randint
 
 from .factories import OrganizationFactory
-from .fixtures import *
+from .fixtures import *  # noqa: F401,F403
 
 
 def test_org_create(client, auth_header, make_token, current_user_id):

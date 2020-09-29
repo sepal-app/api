@@ -1,6 +1,6 @@
 from random import randint
 
-from .fixtures import *
+from .fixtures import *  # noqa: F401,F403
 
 
 def test_accessions_list(client, auth_header, org, accession):

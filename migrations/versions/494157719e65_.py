@@ -1,7 +1,7 @@
 """Create organization tables.
 
 Revision ID: 494157719e65
-Revises: 
+Revises:
 Create Date: 2020-07-25 13:55:57.911073
 
 """

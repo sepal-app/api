@@ -1,5 +1,6 @@
 import sepal.db as db
-import sepal.models
+
+import sepal.models  # noqa: F401
 
 
 def pytest_configure():

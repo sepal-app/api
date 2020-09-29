@@ -57,3 +57,6 @@ class AccessionItemFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     code = factory.fuzzy.FuzzyText()
+    item_type = factory.fuzzy.FuzzyChoice(
+        ["plant", "seed", "vegetative", "tissue", "other"]
+    )

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -18,4 +18,24 @@ class AccessionInDB(AccessionBase):
 
 
 class AccessionCreate(AccessionBase):
+    pass
+
+
+class AccessionItemBase(BaseModel):
+    code: str
+    accession_id: Optional[int]
+    location_id: Optional[int]
+    item_type: Literal["plant", "seed", "vegetative", "tissue", "other"]
+
+
+class AccessionItem(AccessionItemBase):
+    class Config:
+        orm_mode = True
+
+
+class AccessionItemInDB(AccessionItemBase):
+    id: int
+
+
+class AccessionItemCreate(AccessionItemBase):
     pass

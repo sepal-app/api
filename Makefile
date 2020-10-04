@@ -6,6 +6,7 @@ VENV_BIN := venv/bin
 GIT_DIRTY := $(shell git diff)
 GIT_HASH := $(shell git rev-parse --short HEAD)
 PYTHONPATH := .
+PORT ?= 8000
 
 .PHONY: db\:init db\:migrate db\:upgrade deps\:update server\:start test check-git-dirty
 
@@ -46,5 +47,4 @@ db\:upgrade:
 	alembic -c migrations/alembic.ini upgrade head
 
 server\:start:
-	uvicorn sepal.app:app --reload
-
+	uvicorn sepal.app:app --reload --port $(PORT)

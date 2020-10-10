@@ -44,7 +44,7 @@ db\:migrate:
 
 db\:upgrade:
 	@echo upgrading...
-	alembic -c migrations/alembic.ini upgrade head
+	PYTHONPATH=. alembic -c migrations/alembic.ini upgrade head
 
 server\:start:
 	uvicorn sepal.app:app --reload --port $(PORT) --host 0.0.0.0

@@ -2,13 +2,14 @@ import enum
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.schema import UniqueConstraint
 
 from sepal.db import Model
 
 
 class Accession(Model):
+    __table_args__ = (UniqueConstraint("org_id", "code"), {"extend_existing": True})
     code = Column(String(64), nullable=False)
-
     taxon_id = Column(Integer, ForeignKey("taxon.id"), nullable=False)
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
 

@@ -1,4 +1,5 @@
 from random import randint
+from urllib.parse import parse_qs, urlparse
 
 from .fixtures import *  # noqa: F401,F403
 
@@ -49,6 +50,54 @@ def test_accession_items_list(client, auth_header, org, accession, accession_ite
     assert items_json[0]["code"] == accession_item.code
     assert items_json[0]["accession_id"] == accession_item.accession_id
     assert items_json[0]["location_id"] == accession_item.location_id
+
+
+def validate_links_header(links, limit):
+    for rel, value in links.items():
+        url = urlparse(value["url"])
+        assert url.scheme == "http"
+        qs = parse_qs(url.query)
+        assert "cursor" in qs
+        cursor = qs["cursor"][0]
+        assert isinstance(cursor, str) and len(cursor) > 0
+        assert "limit" in qs
+        assert qs["limit"][0] == str(limit)
+
+
+@pytest.mark.parametrize(
+    "num_accessions,limit", [(201, 20), (100, 20), (20, 20), (1, 50)]
+)
+def test_accessions_list_pagination(
+    client, auth_header, org, taxon, make_token, num_accessions, limit
+):
+    accessions = [
+        AccessionFactory(org_id=org.id, taxon_id=taxon.id, code=_)
+        for _ in range(num_accessions)
+    ]
+    resp = client.get(
+        f"/v1/orgs/{org.id}/accessions?limit={limit}", headers=auth_header
+    )
+    assert resp.status_code == 200, resp.content
+    if num_accessions < limit:
+        assert "link" not in resp.headers
+        return
+
+    assert "link" in resp.headers, resp.headers
+    assert "next" in resp.links
+    assert "url" in resp.links["next"]
+    validate_links_header(resp.links, limit)
+
+    next_url = resp.links["next"]["url"]
+    page_ctr = 1
+    while next_url is not None:
+        resp = client.get(next_url, headers=auth_header)
+        validate_links_header(resp.links, limit)
+        next_url = resp.links.get("next", {}).get("url", None)
+        page_ctr += 1
+
+    # assert the number of pages times the page length plus the left over is the
+    # correct number of items
+    assert (page_ctr - 1) * limit + len(accessions) % limit == len(accessions)
 
 
 def test_accession_items_create(

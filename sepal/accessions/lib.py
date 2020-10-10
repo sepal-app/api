@@ -1,4 +1,5 @@
 from typing import List, Optional
+from base64 import b64decode
 
 from sepal.db import db
 
@@ -23,13 +24,22 @@ async def get_accession_by_id(
 
 
 async def get_accessions(
-    org_id: str, query: Optional[str] = None
+    org_id: str, query: Optional[str] = None, limit: int = 50, cursor: str = None
 ) -> List[AccessionInDB]:
-    # TODO: pagination
-    q = accession_table.select().where(accession_table.c.org_id == org_id)
+    q = (
+        accession_table.select()
+        .where(accession_table.c.org_id == org_id)
+        .limit(limit)
+        .order_by(accession_table.c.code)
+    )
     if query is not None:
         q = q.where(accession_table.c.code.ilike(query))
-    data = await db.fetch_all(q)
+
+    if cursor is not None:
+        decoded_cursor = b64decode(cursor).decode()
+        q = q.where(accession_table.c.code > decoded_cursor)
+
+    data = await db.fetch_all(q.limit(limit))
     return [AccessionInDB(**d) for d in data]
 
 

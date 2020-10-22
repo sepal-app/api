@@ -32,6 +32,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["link"],
 )
 
 app.include_router(accessions_router, prefix="/v1/orgs/{org_id}/accessions")

@@ -33,13 +33,13 @@ async def get_accessions(
         .order_by(accession_table.c.code)
     )
     if query is not None:
-        q = q.where(accession_table.c.code.ilike(query))
+        q = q.where(accession_table.c.code.ilike(f"%{query}%"))
 
     if cursor is not None:
         decoded_cursor = b64decode(cursor).decode()
         q = q.where(accession_table.c.code > decoded_cursor)
 
-    data = await db.fetch_all(q.limit(limit))
+    data = await db.fetch_all(q)
     return [AccessionInDB(**d) for d in data]
 
 

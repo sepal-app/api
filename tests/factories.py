@@ -27,7 +27,7 @@ class TaxonFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     name = factory.fuzzy.FuzzyText()
-    rank = factory.fuzzy.FuzzyText()
+    rank = factory.fuzzy.FuzzyChoice(["family", "genus", "species"])
 
 
 class LocationFactory(factory.alchemy.SQLAlchemyModelFactory):

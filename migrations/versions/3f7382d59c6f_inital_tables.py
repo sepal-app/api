@@ -1,4 +1,4 @@
-"""test
+"""Initial tables.
 
 Revision ID: 3f7382d59c6f
 Revises: 6d6a8ff823c2

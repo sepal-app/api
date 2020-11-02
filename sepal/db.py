@@ -1,4 +1,5 @@
 import re
+from contextlib import contextmanager
 
 from databases import Database
 from sqlalchemy import Column, DateTime, ForeignKey, Integer
@@ -12,7 +13,23 @@ from sqlalchemy.sql import expression
 from sepal.settings import settings
 
 engine = create_engine(settings.database_url)
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+_Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@contextmanager
+def Session():
+    """Provide a transactional scope around a series of operations."""
+    session = _Session()
+    try:
+        yield session
+        # session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
 
 db = Database(settings.database_url)
 

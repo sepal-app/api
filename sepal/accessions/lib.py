@@ -1,52 +1,83 @@
-from typing import List, Optional
 from base64 import b64decode
+from contextlib import contextmanager
+from typing import List, Optional
 
-from sepal.db import db
+from sqlalchemy.orm import joinedload
 
-from .models import accession_table, accession_item_table
+from sepal.db import Session, db
+from sepal.taxa.models import Taxon
+from .models import Accession, accession_table, accession_item_table
 from .schema import (
     AccessionCreate,
     AccessionInDB,
     AccessionItemCreate,
     AccessionItemInDB,
+    AccessionUpdate,
+    AccessionSchema,
+    TaxonSchema,
 )
 
 
-async def get_accession_by_id(
-    accession_id: int, org_id: Optional[str] = None
-) -> AccessionInDB:
-    q = accession_table.select().where(accession_table.c.id == accession_id)
-    if org_id is not None:
-        q = q.where(accession_table.c.org_id == org_id)
+@contextmanager
+def accession_query():
+    with Session() as session:
+        yield session.query(Accession)
 
-    data = await db.fetch_one(q)
-    return AccessionInDB(**data) if data else None
+
+async def get_accession_by_id(
+    accession_id: int,
+    org_id: Optional[str] = None,
+    include: Optional[List[str]] = None,
+) -> Accession:
+    with accession_query() as q:
+        q = q.filter(Accession.org_id == org_id, Accession.id == accession_id)
+        if include is not None:
+            for field in include:
+                q = q.options(joinedload(getattr(Accession, field)))
+
+        return q.first()
 
 
 async def get_accessions(
-    org_id: str, query: Optional[str] = None, limit: int = 50, cursor: str = None
-) -> List[AccessionInDB]:
-    q = (
-        accession_table.select()
-        .where(accession_table.c.org_id == org_id)
-        .limit(limit)
-        .order_by(accession_table.c.code)
-    )
-    if query is not None:
-        q = q.where(accession_table.c.code.ilike(f"%{query}%"))
+    org_id: str,
+    query: Optional[str] = None,
+    limit: int = 50,
+    cursor: str = None,
+    include: Optional[List[str]] = None,
+) -> List[Accession]:
+    with accession_query() as q:
+        q = q.filter(Accession.org_id == org_id).order_by(Accession.code)
 
-    if cursor is not None:
-        decoded_cursor = b64decode(cursor).decode()
-        q = q.where(accession_table.c.code > decoded_cursor)
+        if query is not None:
+            q = q.filter(Accession.code.ilike(f"%{query}%"))
 
-    data = await db.fetch_all(q)
-    return [AccessionInDB(**d) for d in data]
+        if cursor is not None:
+            decoded_cursor = b64decode(cursor).decode()
+            q = q.filter(Accession.code > decoded_cursor)
+
+        if include is not None:
+            for field in include:
+                q = q.options(joinedload(getattr(Accession, field)))
+
+        return q.limit(limit).all()
 
 
-async def create_accession(org_id: str, accession: AccessionCreate) -> AccessionInDB:
+async def create_accession(org_id: str, values: AccessionCreate) -> AccessionInDB:
+    with Session() as session:
+        accession = Accession(org_id=org_id, **values.dict())
+        session.add(accession)
+        session.commit()
+        session.refresh(accession)
+        return accession
+
+
+async def update_accession(accession_id: int, data: AccessionUpdate) -> AccessionInDB:
+    # TODO: use the orm
     async with db.transaction():
-        values = dict(org_id=org_id, **accession.dict())
-        accession_id = await db.execute(accession_table.insert(), values=values)
+        await db.execute(
+            accession_table.update().where(accession_table.c.id == accession_id),
+            values=data.dict(),
+        )
         return await get_accession_by_id(accession_id)
 
 

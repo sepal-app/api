@@ -17,10 +17,14 @@ class Accession(Model):
         "Organization", backref=backref("accessions", cascade="all, delete-orphan")
     )
 
+    taxon = relationship(
+        "Taxon", backref=backref("accessions", cascade="all, delete-orphan")
+    )
+
 
 accession_table = Accession.__table__
 
-
+# The SQLAlchemy enum type will persist the names rather than the values
 AccessionItemType = enum.Enum(
     "AccessionItemType", ["plant", "seed", "vegetative", "tissue", "other"]
 )

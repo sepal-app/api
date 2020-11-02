@@ -13,6 +13,20 @@ def test_accessions_list(client, auth_header, org, accession):
     assert accessions_json[0]["taxon_id"] == accession.taxon_id
 
 
+def test_accessions_list_include(client, auth_header, org, accession):
+    resp = client.get(
+        f"/v1/orgs/{org.id}/accessions?include=taxon", headers=auth_header
+    )
+    assert resp.status_code == 200, resp.content
+    accessions_json = resp.json()
+    acc = accessions_json[0]
+    assert acc["id"] == accession.id
+    assert acc["code"] == accession.code
+    assert acc["taxon_id"] == accession.taxon_id
+    assert acc["taxon"] is not None, acc["taxon"]
+    assert acc["taxon"]["id"] == acc["taxon_id"], acc["taxon"]
+
+
 def test_accessions_create(client, auth_header, make_token, org, taxon):
     data = {"code": make_token(), "taxon_id": taxon.id}
     resp = client.post(f"/v1/orgs/{org.id}/accessions", headers=auth_header, json=data)

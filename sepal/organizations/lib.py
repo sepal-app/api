@@ -15,8 +15,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 async def verify_org_id(
     current_user_id=Depends(get_current_user), org_id: int = Path(...),
-):
-    print("current_user_id: {current_user_id}")
+) -> int:
     is_member = await is_organization_member(org_id, current_user_id)
     return org_id if is_member else None
 

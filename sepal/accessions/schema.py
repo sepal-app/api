@@ -1,41 +1,53 @@
 from typing import Literal, Optional
 
 from pydantic import BaseModel
+from sepal.taxa.schema import TaxonSchema, TaxonInDB
 
 
-class AccessionBase(BaseModel):
+class AccessionSchemaBase(BaseModel):
     code: str
     taxon_id: Optional[int]
 
 
-class Accession(AccessionBase):
+class AccessionSchema(AccessionSchemaBase):
+    id: int
+
     class Config:
         orm_mode = True
 
 
-class AccessionInDB(AccessionBase):
-    id: int
+class AccessionInDB(AccessionSchema):
+    pass
+    # id: int
 
 
-class AccessionCreate(AccessionBase):
+class AccessionCreate(AccessionSchemaBase):
     pass
 
 
-class AccessionItemBase(BaseModel):
+class AccessionUpdate(AccessionSchemaBase):
+    pass
+
+
+class AccessionItemSchemaBase(BaseModel):
     code: str
     accession_id: Optional[int]
     location_id: Optional[int]
     item_type: Literal["plant", "seed", "vegetative", "tissue", "other"]
 
 
-class AccessionItem(AccessionItemBase):
+class AccessionItemSchema(AccessionItemSchemaBase):
     class Config:
         orm_mode = True
 
 
-class AccessionItemInDB(AccessionItemBase):
+class AccessionItemInDB(AccessionItemSchema):
     id: int
 
 
-class AccessionItemCreate(AccessionItemBase):
+class AccessionItemCreate(AccessionItemSchemaBase):
+    pass
+
+
+class AccessionItemUpdate(AccessionItemSchemaBase):
     pass

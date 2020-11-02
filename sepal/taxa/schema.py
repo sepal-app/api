@@ -5,7 +5,7 @@ from pydantic import BaseModel, validator
 from .models import Rank
 
 
-class TaxonBase(BaseModel):
+class TaxonSchemaBase(BaseModel):
     name: str
     rank: Rank
     parent_id: Optional[int]
@@ -25,14 +25,24 @@ class TaxonBase(BaseModel):
         }
 
 
-class Taxon(TaxonBase):
+class TaxonSchema(TaxonSchemaBase):
+    id: int
+
     class Config:
         orm_mode = True
 
 
-class TaxonInDB(TaxonBase):
+class TaxonInDB(TaxonSchema):
     id: int
 
 
-class TaxonCreate(TaxonBase):
+class TaxonCreate(TaxonSchemaBase):
+    pass
+
+
+class TaxonUpdate(TaxonSchemaBase):
+    pass
+
+
+class TaxonUpdate(TaxonSchemaBase):
     pass

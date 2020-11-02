@@ -14,6 +14,13 @@ class Location(LocationBase):
         orm_mode = True
 
 
+class LocationSchema(LocationBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
 class LocationInDB(LocationBase):
     id: int
 

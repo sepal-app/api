@@ -38,4 +38,7 @@ class Taxon(Model):
     )
 
 
+# declare outside the class definition since we need to reference Taxon.id
+Taxon.parent = relationship(Taxon, uselist=False, remote_side=Taxon.id)
+
 taxon_table = Taxon.__table__

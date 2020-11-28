@@ -3,8 +3,6 @@ from sqlalchemy.orm import backref, relationship
 
 from sepal.db import BaseModel, Model, utcnow
 
-# from sepal.users.models import User
-
 
 class Organization(Model):
     name = Column(String(128))

@@ -1,4 +1,6 @@
 import secrets
+from itertools import chain
+from random import choice
 
 import pytest
 from fastapi.testclient import TestClient
@@ -6,12 +8,14 @@ from fastapi.testclient import TestClient
 import sepal.db as _db
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser
+from sepal.permissions.lib import AllPermissions, grant_user_permission
 
 from .factories import (
     AccessionFactory,
     AccessionItemFactory,
     LocationFactory,
     OrganizationFactory,
+    RoleFactory,
     Session,
     TaxonFactory,
 )
@@ -72,8 +76,16 @@ def org(session, current_user_id):
     org = OrganizationFactory()
     org_user = OrganizationUser(organization_id=org.id, user_id=current_user_id)
     session.add(org_user)
+
+    # Give the user full permissions on the organization
+    for item in AllPermissions:
+        grant_user_permission(org.id, current_user_id, item)
+
     session.commit()
-    return org
+    yield org
+
+    session.delete(org)
+    session.commit()
 
 
 @pytest.fixture
@@ -96,3 +108,13 @@ def accession_item(org, accession, location):
     return AccessionItemFactory(
         org_id=org.id, accession_id=accession.id, location_id=location.id
     )
+
+
+@pytest.fixture
+def role(org):
+    return RoleFactory(organization_id=org.id)
+
+
+@pytest.fixture
+def random_permission():
+    return choice(AllPermissions)

@@ -1,13 +1,27 @@
 from base64 import b64decode
 from contextlib import contextmanager
-from typing import List, Optional
+from enum import Enum
+from typing import List, Literal, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request, status
 from sqlalchemy.orm import joinedload
 
 from sepal.db import Session, db
 
 from .models import Taxon, taxon_table
 from .schema import TaxonCreate, TaxonInDB, TaxonSchema, TaxonUpdate
+
+
+class TaxaPermission(str, Enum):
+    Read = "taxa:read"
+    Create = "taxa:create"
+    Update = "taxa:update"
+    Delete = "taxa:delete"
+
+
+# TaxaPermission = Literal[
+#     "taxa:read", "taxa:create", "taxa.update", "taxa.delete",
+# ]
 
 
 @contextmanager
@@ -27,7 +41,6 @@ async def get_taxon_by_id(
             for field in include:
                 q = q.options(joinedload(getattr(Taxon, field)))
 
-        print(q)
         return q.first()
 
 

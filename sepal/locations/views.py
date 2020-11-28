@@ -3,17 +3,18 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 
 from sepal.auth import get_current_user
+from sepal.organizations.lib import verify_org_id
+from sepal.permissions.lib import check_permission
 from sepal.utils import create_schema, make_cursor_link
 
-from .lib import create_location, get_location_by_id, get_locations
+from .lib import LocationsPermission, create_location, get_location_by_id, get_locations
 from .models import Location
 from .schema import LocationCreate, LocationInDB, LocationSchema
-from sepal.organizations.lib import verify_org_id
 
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", dependencies=[Depends(check_permission(LocationsPermission.Read))])
 async def list(
     request: Request,
     response: Response,
@@ -22,7 +23,7 @@ async def list(
     q: Optional[str] = None,
     cursor: Optional[str] = None,
     limit: int = 50,
-    # TODO: what can we include here
+    # TODO: what relations can we include here
     include: Optional[List[str]] = Query(None),
 ) -> List[LocationSchema]:
     if org_id is None:
@@ -40,7 +41,11 @@ async def list(
     return [Schema.from_orm(location) for location in locations]
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(check_permission(LocationsPermission.Create))],
+)
 async def create(
     location: LocationCreate,
     current_user_id=Depends(get_current_user),
@@ -51,7 +56,10 @@ async def create(
     return await create_location(org_id, location)
 
 
-@router.get("/{location_id}")
+@router.get(
+    "/{location_id}",
+    dependencies=[Depends(check_permission(LocationsPermission.Read))],
+)
 async def detail(
     location_id: int,
     current_user_id=Depends(get_current_user),

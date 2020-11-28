@@ -9,6 +9,7 @@ def test_taxon_rank_enum_constraint_fails(session, org):
         taxon = Taxon(org_id=org.id, name="1234", rank="not_valid")
         session.add(taxon)
         session.commit()
+    session.rollback()
 
 
 def test_taxon_rank_enum_constraint(session, org):

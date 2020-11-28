@@ -1,10 +1,15 @@
 import enum
+from typing import Literal
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.schema import UniqueConstraint
 
 from sepal.db import Model
+
+AccessionPermission = Literal[
+    "accessions:read", "accessions:create", "accessions.update", "accessions.delete",
+]
 
 
 class Accession(Model):
@@ -35,9 +40,14 @@ class AccessionItem(Model):
     item_type = Column(String, Enum(AccessionItemType), nullable=False)
 
     accession_id = Column(Integer, ForeignKey("accession.id"), nullable=False)
+    accession = relationship(
+        "Accession", backref=backref("items", cascade="all, delete-orphan")
+    )
     location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
+    location = relationship(
+        "Location", backref=backref("accession_items", cascade="all, delete-orphan")
+    )
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
-
     organization = relationship(
         "Organization", backref=backref("accession_items", cascade="all, delete-orphan")
     )

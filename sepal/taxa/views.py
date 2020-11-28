@@ -4,16 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, 
 
 from sepal.auth import get_current_user
 from sepal.organizations.lib import verify_org_id
+from sepal.permissions.lib import check_permission
 from sepal.utils import create_schema, make_cursor_link
 
-from .lib import create_taxon, get_taxa, get_taxon_by_id, update_taxon
+
+from .lib import TaxaPermission, create_taxon, get_taxa, get_taxon_by_id, update_taxon
 from .models import Taxon
 from .schema import TaxonCreate, TaxonSchema, TaxonInDB
 
 router = APIRouter()
 
 
-@router.get("")
+@router.get("", dependencies=[Depends(check_permission(TaxaPermission.Read))])
 async def list(
     request: Request,
     response: Response,
@@ -37,7 +39,11 @@ async def list(
     return [Schema.from_orm(taxon) for taxon in taxa]
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(check_permission(TaxaPermission.Create))],
+)
 async def create(
     taxon: TaxonCreate,
     current_user_id=Depends(get_current_user),
@@ -48,7 +54,9 @@ async def create(
     return await create_taxon(org_id, taxon)
 
 
-@router.get("/{taxon_id}")
+@router.get(
+    "/{taxon_id}", dependencies=[Depends(check_permission(TaxaPermission.Read))],
+)
 async def detail(
     taxon_id: int,
     current_user_id=Depends(get_current_user),
@@ -66,7 +74,9 @@ async def detail(
     return Schema.from_orm(taxon)
 
 
-@router.patch("/{taxon_id}")
+@router.patch(
+    "/{taxon_id}", dependencies=[Depends(check_permission(TaxaPermission.Update))],
+)
 async def update(
     taxon_id: int,
     taxon: TaxonCreate,

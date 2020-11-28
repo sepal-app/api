@@ -89,7 +89,8 @@ def decode_token(token: str = Depends(get_auth_header_token)):
         )
 
 
-def get_current_user(payload=Depends(decode_token)):
+def get_current_user(payload=Depends(decode_token)) -> str:
+    """Return the id of the user"""
     return payload.get("sub", None)
 
 

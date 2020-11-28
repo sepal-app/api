@@ -1,11 +1,13 @@
 from base64 import b64decode
 from contextlib import contextmanager
-from typing import List, Optional
+from enum import Enum
+from typing import List, Literal, Optional
 
 from sqlalchemy.orm import joinedload
 
 from sepal.db import Session, db
 from sepal.taxa.models import Taxon
+
 from .models import Accession, accession_table, accession_item_table
 from .schema import (
     AccessionCreate,
@@ -16,6 +18,18 @@ from .schema import (
     AccessionSchema,
     TaxonSchema,
 )
+
+
+class AccessionsPermission(str, Enum):
+    Read = "accessions:read"
+    Create = "accessions:create"
+    Update = "accessions:update"
+    Delete = "accessions:delete"
+
+
+# AccessionPermission = Literal[
+#     "accessions:read", "accessions:create", "accessions:update", "accessions:delete",
+# ]
 
 
 @contextmanager

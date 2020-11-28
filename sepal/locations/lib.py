@@ -1,6 +1,7 @@
 from base64 import b64decode
 from contextlib import contextmanager
-from typing import List, Optional
+from enum import Enum
+from typing import List, Literal, Optional
 
 from sqlalchemy.orm import joinedload
 
@@ -8,6 +9,18 @@ from sepal.db import Session, db
 from sepal.taxa.models import Taxon
 from .models import Location, location_table
 from .schema import LocationCreate, LocationInDB
+
+
+class LocationsPermission(str, Enum):
+    Read = "locations:read"
+    Create = "locations:create"
+    Update = "locations:update"
+    Delete = "locations:delete"
+
+
+# LocationPermission = Literal[
+#     "locations:read", "locations:create", "locations.update", "locations.delete",
+# ]
 
 
 @contextmanager

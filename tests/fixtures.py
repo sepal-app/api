@@ -15,6 +15,7 @@ from .factories import (
     AccessionItemFactory,
     LocationFactory,
     OrganizationFactory,
+    ProfileFactory,
     RoleFactory,
     Session,
     TaxonFactory,
@@ -64,6 +65,14 @@ def current_user_id(make_token):
     app.dependency_overrides[get_current_user] = lambda: user_id
     yield user_id
     del app.dependency_overrides[get_current_user]
+
+
+@pytest.fixture
+def profile(session, current_user_id):
+    profile = ProfileFactory(user_id=current_user_id)
+    yield profile
+    session.delete(profile)
+    session.commit()
 
 
 @pytest.fixture

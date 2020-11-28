@@ -27,11 +27,6 @@ class AccessionsPermission(str, Enum):
     Delete = "accessions:delete"
 
 
-# AccessionPermission = Literal[
-#     "accessions:read", "accessions:create", "accessions:update", "accessions:delete",
-# ]
-
-
 @contextmanager
 def accession_query():
     with Session() as session:

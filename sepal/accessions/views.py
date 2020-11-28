@@ -61,6 +61,7 @@ async def create(
 ) -> AccessionSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return await create_accession(org_id, accession)
 
 

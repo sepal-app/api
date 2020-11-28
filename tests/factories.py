@@ -6,6 +6,7 @@ import sepal.db as db
 from sepal.accessions.models import Accession, AccessionItem
 from sepal.locations.models import Location
 from sepal.organizations.models import Organization
+from sepal.profile.models import Profile
 from sepal.permissions.models import Role, RoleMember, RolePermission, UserPermission
 from sepal.taxa.models import Taxon
 
@@ -91,3 +92,13 @@ class UserPermissionFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = UserPermission
         sqlalchemy_session = Session
         sqlalchemy_session_persistence = "commit"
+
+
+class ProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = Profile
+        sqlalchemy_session = Session
+        sqlalchemy_session_persistence = "commit"
+
+    email = factory.Faker("email")
+    username = factory.Faker("word")

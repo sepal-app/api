@@ -6,6 +6,7 @@ from .db import db
 from .accessions.views import router as accessions_router
 from .locations.views import router as locations_router
 from .organizations.views import router as orgs_router
+from .profile.views import router as profile_router
 from .taxa.views import router as taxa_router
 
 origins = [
@@ -39,3 +40,4 @@ app.include_router(accessions_router, prefix="/v1/orgs/{org_id}/accessions")
 app.include_router(locations_router, prefix="/v1/orgs/{org_id}/locations")
 app.include_router(orgs_router, prefix="/v1/orgs")
 app.include_router(taxa_router, prefix="/v1/orgs/{org_id}/taxa")
+app.include_router(profile_router, prefix="/v1/profile")

@@ -12,7 +12,7 @@ click==7.1.2              # via uvicorn
 cryptography==2.9.2       # via python-jose
 databases[postgresql]==0.3.2  # via -r requirements/prod.in
 ecdsa==0.15               # via python-jose
-fastapi==0.61.1           # via -r requirements/prod.in, fastapi-permissions
+fastapi==0.61.2           # via -r requirements/prod.in, fastapi-permissions
 fastapi_permissions==0.2.7  # via -r requirements/prod.in
 h11==0.9.0                # via uvicorn
 httptools==0.1.1          # via uvicorn
@@ -23,7 +23,7 @@ passlib[bcrypt]==1.7.2    # via -r requirements/prod.in
 psycopg2-binary==2.8.5    # via databases
 pyasn1==0.4.8             # via python-jose, rsa
 pycparser==2.20           # via cffi
-pydantic==1.5.1           # via fastapi
+pydantic==1.7.2           # via -r requirements/prod.in, fastapi
 python-dateutil==2.8.1    # via alembic
 python-editor==1.0.4      # via alembic
 python-jose[cryptography]==3.1.0  # via -r requirements/prod.in

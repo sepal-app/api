@@ -1,86 +1,129 @@
 from enum import Enum
-from fastapi import Depends, Path
+from contextlib import contextmanager
 from itertools import chain
-from passlib.context import CryptContext
+from typing import List, Optional, Tuple
+
+from fastapi import Depends, Path
 from sqlalchemy import exists, select
-from typing import List, Optional
 
 from sepal.accessions.lib import AccessionsPermission
 from sepal.auth import get_current_user
-from sepal.db import db
+from sepal.db import Session
 from sepal.locations.lib import LocationsPermission
+from sepal.profile.models import Profile
 from sepal.taxa.lib import TaxaPermission
 
-from .models import organization_table, organization_user_table
-from .schema import OrganizationCreate, OrganizationInDB
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from .models import Organization, OrganizationUser, RoleType
+from .schema import OrganizationCreate
 
 
 class OrganizationsPermission(str, Enum):
-    Read = "organizations:read"
     Create = "organizations:create"
-    Update = "organizations:update"
     Delete = "organizations:delete"
+    Read = "organizations:read"
+    UsersInvite = "organizations:users_invite"
+    UsersList = "organizations:users_list"
+    Update = "organizations:update"
+
+
+@contextmanager
+def organization_query():
+    with Session() as session:
+        yield session.query(Organization)
+
+
+@contextmanager
+def organization_user_query():
+    with Session() as session:
+        yield session.query(OrganizationUser)
 
 
 async def verify_org_id(
     current_user_id=Depends(get_current_user), org_id: int = Path(...),
-) -> int:
-    is_member = await is_organization_member(org_id, current_user_id)
-    return org_id if is_member else None
+) -> Optional[int]:
+    """Return True/False if the current user is a member of an organization"""
+    return org_id if await is_member(org_id, current_user_id) else None
 
 
-def user_organizations_query(user_id: str):
-    return (
-        organization_table.join(
-            organization_user_table,
-            organization_table.c.id == organization_user_table.c.organization_id,
+async def is_member(org_id: int, user_id: str, role: Optional[RoleType] = None) -> bool:
+    with Session() as session:
+        q = session.query(OrganizationUser).filter_by(
+            organization_id=org_id, user_id=user_id
         )
-        .select()
-        .where(organization_user_table.c.user_id == user_id)
-    )
+        if role:
+            q = q.filter_by(role=role)
 
-
-async def is_organization_member(org_id: int, user_id: str):
-    q = select([exists(user_organizations_query(user_id))])
-    return (await db.fetch_one(q))[0]
+        return session.query(q.exists()).scalar()
 
 
 async def get_organization_by_id(
     org_id: int, user_id: Optional[str] = None
-) -> OrganizationInDB:
-    q = (
-        user_organizations_query(user_id).where(organization_table.c.id == org_id)
-        if user_id is not None
-        else organization_table.select().where(organization_table.c.id == org_id)
-    )
-    data = await db.fetch_one(q)
-    return OrganizationInDB(**data) if data else None
+) -> Organization:
+    with organization_query() as q:
+        q = q.filter_by(id=org_id)
+        if user_id is not None:
+            q = q.join(OrganizationUser).filter(OrganizationUser.user_id == user_id)
+
+        return q.first()
 
 
-async def get_user_organizations(user_id: str) -> List[OrganizationInDB]:
-    q = user_organizations_query(user_id)
-    data = await db.fetch_all(q)
-    return [OrganizationInDB(**d) for d in data]
-
-
-async def create_organization(
-    user_id: str, org: OrganizationCreate
-) -> OrganizationInDB:
-    from sepal.permissions.lib import AllPermissions, grant_user_permission
-
-    async with db.transaction():
-        org_id = await db.execute(organization_table.insert(), values=org.dict())
-        await db.execute(
-            organization_user_table.insert(),
-            values={"organization_id": org_id, "user_id": user_id},
+async def get_user_organizations(user_id: str) -> List[Organization]:
+    with organization_query() as q:
+        return (
+            q.join(OrganizationUser).filter(OrganizationUser.user_id == user_id).all()
         )
 
-    # Separate transaction to that we have an org_id
-    async with db.transaction():
-        # Give the user full permissions on the organization
-        for item in AllPermissions:
-            grant_user_permission(org_id, user_id, item)
 
-        return await get_organization_by_id(org_id)
+async def get_user_role(org_id: int, user_id: str) -> Optional[RoleType]:
+    with organization_user_query() as q:
+        org_user = q.filter_by(organization_id=org_id, user_id=user_id).first()
+        return org_user.role if org_user else None
+
+
+async def assign_role(org_id: int, user_id: str, role: RoleType):
+    """Assign a user to a role in an organization."""
+    with Session() as session:
+        org_user_exists = (
+            session.query(OrganizationUser)
+            .filter_by(organization_id=org_id, user_id=user_id, role=role)
+            .exists()
+        )
+        if session.query(org_user_exists).scalar():
+            return
+
+        org_user = OrganizationUser(organization_id=org_id, user_id=user_id, role=role)
+        session.add(org_user)
+        session.commit()
+
+
+async def remove_role(org_id: int, user_id: str, role: RoleType):
+    """Remove a user from a role in an organization."""
+    with Session() as session:
+        session.query(OrganizationUser).filter_by(
+            organization_id=org_id, user_id=user_id
+        ).delete()
+        session.commit()
+
+
+async def create_organization(user_id: str, data: OrganizationCreate) -> Organization:
+    with Session() as session:
+        org = Organization(**data.dict())
+        org_user = OrganizationUser(
+            organization=org, user_id=user_id, role=RoleType.Owner
+        )
+        session.add_all([org, org_user])
+        session.commit()
+        session.refresh(org)
+        return org
+
+
+async def get_users(org_id: int) -> Tuple[Profile, RoleType]:
+    with Session() as session:
+        return (
+            session.query(Profile, OrganizationUser.role)
+            .filter(
+                OrganizationUser.user_id == Profile.user_id,
+                OrganizationUser.organization_id == org_id,
+            )
+            .all()
+        )

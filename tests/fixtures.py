@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 
 import sepal.db as _db
 from sepal.app import app
-from sepal.organizations.models import OrganizationUser
-from sepal.permissions.lib import AllPermissions, grant_user_permission
+from sepal.organizations.models import OrganizationUser, RoleType
+from sepal.permissions import AllPermissions
 
 from .factories import (
     AccessionFactory,
@@ -16,7 +16,6 @@ from .factories import (
     LocationFactory,
     OrganizationFactory,
     ProfileFactory,
-    RoleFactory,
     Session,
     TaxonFactory,
 )
@@ -83,13 +82,10 @@ def auth_header(make_token):
 @pytest.fixture
 def org(session, current_user_id):
     org = OrganizationFactory()
-    org_user = OrganizationUser(organization_id=org.id, user_id=current_user_id)
-    session.add(org_user)
-
-    # Give the user full permissions on the organization
-    for item in AllPermissions:
-        grant_user_permission(org.id, current_user_id, item)
-
+    org_user = OrganizationUser(
+        organization_id=org.id, user_id=current_user_id, role=RoleType.Owner
+    )
+    session.add_all([org, org_user])
     session.commit()
     yield org
 
@@ -117,11 +113,6 @@ def accession_item(org, accession, location):
     return AccessionItemFactory(
         org_id=org.id, accession_id=accession.id, location_id=location.id
     )
-
-
-@pytest.fixture
-def role(org):
-    return RoleFactory(organization_id=org.id)
 
 
 @pytest.fixture

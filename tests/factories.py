@@ -7,7 +7,7 @@ from sepal.accessions.models import Accession, AccessionItem
 from sepal.locations.models import Location
 from sepal.organizations.models import Organization
 from sepal.profile.models import Profile
-from sepal.permissions.models import Role, RoleMember, RolePermission, UserPermission
+
 from sepal.taxa.models import Taxon
 
 Session = scoped_session(sessionmaker(bind=db.engine))
@@ -64,36 +64,6 @@ class AccessionItemFactory(factory.alchemy.SQLAlchemyModelFactory):
     )
 
 
-class RoleFactory(factory.alchemy.SQLAlchemyModelFactory):
-    class Meta:
-        model = Role
-        sqlalchemy_session = Session
-        sqlalchemy_session_persistence = "commit"
-
-    name = factory.fuzzy.FuzzyText()
-
-
-class RoleMemberFactory(factory.alchemy.SQLAlchemyModelFactory):
-    class Meta:
-        model = RoleMember
-        sqlalchemy_session = Session
-        sqlalchemy_session_persistence = "commit"
-
-
-class RolePermissionFactory(factory.alchemy.SQLAlchemyModelFactory):
-    class Meta:
-        model = RolePermission
-        sqlalchemy_session = Session
-        sqlalchemy_session_persistence = "commit"
-
-
-class UserPermissionFactory(factory.alchemy.SQLAlchemyModelFactory):
-    class Meta:
-        model = UserPermission
-        sqlalchemy_session = Session
-        sqlalchemy_session_persistence = "commit"
-
-
 class ProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Profile
@@ -101,4 +71,3 @@ class ProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     email = factory.Faker("email")
-    username = factory.Faker("word")

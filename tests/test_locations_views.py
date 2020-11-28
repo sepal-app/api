@@ -1,6 +1,7 @@
 from random import randint
-from sepal.permissions.lib import revoke_user_permission
 from sepal.locations.lib import LocationsPermission
+from sepal.organizations.lib import remove_role
+from sepal.organizations.models import RoleType
 
 from .fixtures import *  # noqa: F401,F403
 
@@ -14,9 +15,11 @@ def test_locations_list(client, auth_header, org, current_user_id, location):
 
 
 def test_locations_list_permissions_fail(
-    client, auth_header, org, current_user_id, location
+    session, client, auth_header, current_user_id, location
 ):
-    revoke_user_permission(org.id, current_user_id, LocationsPermission.Read)
+    org = OrganizationFactory()  # user is not a member of this org
+    session.add(org)
+    session.commit()
     resp = client.get(f"/v1/orgs/{org.id}/locations", headers=auth_header)
     assert resp.status_code == 403, resp.content
 

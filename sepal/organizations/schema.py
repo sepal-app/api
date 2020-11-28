@@ -1,7 +1,9 @@
 from pydantic import BaseModel
+from sepal.profile.schema import ProfileSchema
+from .models import RoleType
 
 
-class OrganizationBase(BaseModel):
+class OrganizationSchemaBase(BaseModel):
     name: str
     short_name: str = None
     address: str = None
@@ -11,14 +13,34 @@ class OrganizationBase(BaseModel):
     postal_code: str = None
 
 
-class Organization(OrganizationBase):
+class OrganizationSchema(OrganizationSchemaBase):
+    id: int
+
     class Config:
         orm_mode = True
 
 
-class OrganizationInDB(OrganizationBase):
-    id: int
+# class OrganizationInDB(OrganizationBase):
+#     id: int
 
 
-class OrganizationCreate(OrganizationBase):
+class OrganizationCreate(OrganizationSchemaBase):
     pass
+
+
+class OrganizationUpdate(OrganizationSchemaBase):
+    pass
+
+
+class OrganizationUserSchemaBase(BaseModel):
+    profile: ProfileSchema
+    role: RoleType
+
+
+class OrganizationUserSchema(OrganizationSchemaBase):
+    class Config:
+        orm_mode = True
+
+
+# class OrganizationInDB(OrganizationBase):
+#     id: int

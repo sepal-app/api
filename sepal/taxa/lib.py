@@ -19,11 +19,6 @@ class TaxaPermission(str, Enum):
     Delete = "taxa:delete"
 
 
-# TaxaPermission = Literal[
-#     "taxa:read", "taxa:create", "taxa.update", "taxa.delete",
-# ]
-
-
 @contextmanager
 def taxon_query():
     with Session() as session:

@@ -38,10 +38,12 @@ deps\:update:
 db\:init:
 	@echo init db...
 
+# Generate migrations
 db\:migrate:
 	@echo generating migrations...
-	PYTHONPATH=. alembic -c migrations/alembic.ini revision --autogenerate $*
+	PYTHONPATH=. alembic -c migrations/alembic.ini revision --autogenerate -m "$(MESSAGE)"
 
+# Apply migrations
 db\:upgrade:
 	@echo upgrading...
 	PYTHONPATH=. alembic -c migrations/alembic.ini upgrade head

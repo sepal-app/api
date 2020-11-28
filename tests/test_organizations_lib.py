@@ -1,6 +1,6 @@
-from sepal.organizations.lib import create_organization
+from sepal.organizations.lib import create_organization, assign_role
 from sepal.organizations.schema import OrganizationCreate
-from sepal.permissions.lib import AllPermissions, has_permission
+from sepal.permissions import AllPermissions, has_permission
 
 import pytest
 
@@ -17,4 +17,4 @@ async def test_create_organization(db, current_user_id, make_token):
 
     # check that the user has full permissions on the organization
     for item in AllPermissions:
-        assert has_permission(org.id, current_user_id, item)
+        assert await has_permission(org.id, current_user_id, item)

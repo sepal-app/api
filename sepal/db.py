@@ -3,7 +3,6 @@ from contextlib import contextmanager
 
 from databases import Database
 from sqlalchemy import Column, DateTime, ForeignKey, Integer
-from sqlalchemy import Table as BaseTable
 from sqlalchemy import create_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
@@ -53,24 +52,6 @@ class utcnow(expression.FunctionElement):
 @compiles(utcnow, "postgresql")
 def pg_utcnow(element, compiler, **kw):
     return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
-
-
-def Table(table_name, *args, **kwargs):
-    return BaseTable(
-        table_name,
-        metadata,
-        Column("id", Integer, primary_key=True),
-        Column("created_at", DateTime, server_default=utcnow(), nullable=False),
-        Column(
-            "updated_at",
-            DateTime,
-            server_default=utcnow(),
-            nullable=False,
-            onupdate=utcnow(),
-        ),
-        *args,
-        **kwargs,
-    )
 
 
 # From Mike Bayer's "Building the app" talk

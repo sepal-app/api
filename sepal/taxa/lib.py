@@ -6,7 +6,7 @@ from typing import List, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request, status
 from sqlalchemy.orm import joinedload
 
-from sepal.db import Session, db
+from sepal.db import Session
 
 from .models import Taxon, taxon_table
 from .schema import TaxonCreate, TaxonInDB, TaxonSchema, TaxonUpdate

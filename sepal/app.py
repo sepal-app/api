@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import db
-
 from .accessions.views import router as accessions_router
 from .locations.views import router as locations_router
 from .organizations.views import router as orgs_router
@@ -15,16 +13,6 @@ origins = [
 ]
 
 app = FastAPI()
-
-
-@app.on_event("startup")
-async def startup():
-    await db.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await db.disconnect()
 
 
 app.add_middleware(

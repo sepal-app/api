@@ -5,7 +5,7 @@ from typing import List, Literal, Optional
 
 from sqlalchemy.orm import joinedload
 
-from sepal.db import Session, db
+from sepal.db import Session
 from sepal.taxa.models import Taxon
 
 from .models import Accession, accession_table, accession_item_table
@@ -90,42 +90,40 @@ async def update_accession(accession_id: int, data: AccessionUpdate) -> Accessio
         return await get_accession_by_id(accession_id)
 
 
-async def get_accession_item_by_id(
-    accession_item_id: int, org_id: Optional[str] = None
-) -> AccessionItemInDB:
-    q = accession_item_table.select().where(
-        accession_item_table.c.id == accession_item_id
-    )
-    if org_id is not None:
-        q = q.where(accession_item_table.c.org_id == org_id)
+# async def get_accession_item_by_id(
+#     accession_item_id: int, org_id: Optional[str] = None
+# ) -> AccessionItem:
+#     with Session() as session:
+#         q = session.query(AccessionItem).filter_by(id=accession_item_id)
+#         if org_id is not None:
+#             q = q.filter_by(org_id=org_id)
 
-    data = await db.fetch_one(q)
-    return AccessionItemInDB(**data) if data else None
+#         return q.first()
 
 
-async def get_accession_items(
-    org_id: str, accession_id, int, query: Optional[str] = None
-) -> List[AccessionItemInDB]:
-    # TODO: pagination
-    q = (
-        accession_item_table.select()
-        .where(accession_item_table.c.org_id == org_id)
-        .where(accession_item_table.c.accession_id == accession_id,)
-    )
-    if query is not None:
-        q = q.where(accession_item_table.c.code.ilike(query))
-    data = await db.fetch_all(q)
-    return [AccessionItemInDB(**d) for d in data]
+# async def get_accession_items(
+#     org_id: str, accession_id, int, query: Optional[str] = None
+# ) -> List[AccessionItemInDB]:
+#     # TODO: pagination
+#     q = (
+#         accession_item_table.select()
+#         .where(accession_item_table.c.org_id == org_id)
+#         .where(accession_item_table.c.accession_id == accession_id,)
+#     )
+#     if query is not None:
+#         q = q.where(accession_item_table.c.code.ilike(query))
+#     data = await db.fetch_all(q)
+#     return [AccessionItemInDB(**d) for d in data]
 
 
-async def create_accession_item(
-    org_id: str, accession_item: AccessionItemCreate
-) -> AccessionItemInDB:
-    async with db.transaction():
-        values = dict(org_id=org_id, **accession_item.dict())
-        print("values: ")
-        print(values)
-        accession_item_id = await db.execute(
-            accession_item_table.insert(), values=values
-        )
-        return await get_accession_item_by_id(accession_item_id)
+# async def create_accession_item(
+#     org_id: str, accession_item: AccessionItemCreate
+# ) -> AccessionItemInDB:
+#     async with db.transaction():
+#         values = dict(org_id=org_id, **accession_item.dict())
+#         print("values: ")
+#         print(values)
+#         accession_item_id = await db.execute(
+#             accession_item_table.insert(), values=values
+#         )
+#         return await get_accession_item_by_id(accession_item_id)

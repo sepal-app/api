@@ -9,7 +9,7 @@ from .fixtures import *  # noqa: F401,F403
 
 
 @pytest.mark.asyncio
-async def test_create_organization(db, current_user_id, make_token):
+async def test_create_organization(current_user_id, make_token):
     data = OrganizationCreate(name=make_token())
     org = await create_organization(current_user_id, data)
     assert isinstance(org.id, int)

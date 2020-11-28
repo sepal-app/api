@@ -5,7 +5,7 @@ from typing import List, Literal, Optional
 
 from sqlalchemy.orm import joinedload
 
-from sepal.db import Session, db
+from sepal.db import Session
 from sepal.taxa.models import Taxon
 from .models import Location, location_table
 from .schema import LocationCreate, LocationInDB

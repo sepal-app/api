@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy.orm import object_session
 
-from sepal.db import Session, db
+from sepal.db import Session
 from .models import Profile
 from .schema import ProfileCreate, ProfileSchema, ProfileUpdate
 

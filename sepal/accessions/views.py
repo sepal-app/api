@@ -7,10 +7,10 @@ from sepal.utils import create_schema, make_cursor_link
 
 from .lib import (
     create_accession,
-    create_accession_item,
+    # create_accession_item,
     get_accession_by_id,
     get_accessions,
-    get_accession_items,
+    # get_accession_items,
     update_accession,
 )
 from .models import Accession
@@ -81,3 +81,41 @@ async def detail(
 
     Schema = create_schema(AccessionSchema, Accession, include=include)
     return Schema.from_orm(accession)
+
+
+@router.patch("/{accession_id}")
+async def update(
+    accession_id: int,
+    accession: AccessionCreate,
+    current_user_id=Depends(get_current_user),
+    org_id=Depends(verify_org_id),
+) -> AccessionInDB:
+    if org_id is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return await update_accession(accession_id, accession)
+
+
+# @router.get("/{accession_id}/items")
+# async def list_items(
+#     accession_id: int,
+#     org_id=Depends(verify_org_id),
+#     current_user_id=Depends(get_current_user),
+#     q: Optional[str] = None,
+# ) -> List[AccessionInDB]:
+#     if org_id is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+#     return await get_accession_items(org_id, accession_id, q)
+
+
+# @router.post("/{accession_id}/items", status_code=status.HTTP_201_CREATED)
+# async def create_item(
+#     accession_item: AccessionItemCreate,
+#     accession_id: int,
+#     current_user_id=Depends(get_current_user),
+#     org_id=Depends(verify_org_id),
+# ) -> AccessionInDB:
+#     if org_id is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+#     return await create_accession_item(org_id, accession_item)

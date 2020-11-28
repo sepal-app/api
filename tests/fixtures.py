@@ -30,7 +30,7 @@ def make_token():
 
 
 @pytest.fixture
-def client(db):
+def client():
     return TestClient(app)
 
 
@@ -39,16 +39,6 @@ def session():
     s = Session()
     yield s
     Session.remove()
-
-
-@pytest.fixture
-async def db():
-    if not _db.db.is_connected:
-        await _db.db.connect()
-
-    yield _db.db
-
-    await _db.db.disconnect()
 
 
 @pytest.fixture

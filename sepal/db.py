@@ -1,7 +1,6 @@
 import re
 from contextlib import contextmanager
 
-from databases import Database
 from sqlalchemy import Column, DateTime, ForeignKey, Integer
 from sqlalchemy import create_engine
 from sqlalchemy.ext.compiler import compiles
@@ -28,9 +27,6 @@ def Session():
         raise
     finally:
         session.close()
-
-
-db = Database(settings.database_url)
 
 
 class BaseMetaclass(DeclarativeMeta):

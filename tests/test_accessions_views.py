@@ -54,16 +54,16 @@ def test_accession_detail_missing(client, auth_header, org, accession):
     assert resp.status_code == 404
 
 
-def test_accession_items_list(client, auth_header, org, accession, accession_item):
-    resp = client.get(
-        f"/v1/orgs/{org.id}/accessions/{accession.id}/items", headers=auth_header
-    )
-    assert resp.status_code == 200, resp.content
-    items_json = resp.json()
-    assert items_json[0]["id"] == accession_item.id
-    assert items_json[0]["code"] == accession_item.code
-    assert items_json[0]["accession_id"] == accession_item.accession_id
-    assert items_json[0]["location_id"] == accession_item.location_id
+# def test_accession_items_list(client, auth_header, org, accession, accession_item):
+#     resp = client.get(
+#         f"/v1/orgs/{org.id}/accessions/{accession.id}/items", headers=auth_header
+#     )
+#     assert resp.status_code == 200, resp.content
+#     items_json = resp.json()
+#     assert items_json[0]["id"] == accession_item.id
+#     assert items_json[0]["code"] == accession_item.code
+#     assert items_json[0]["accession_id"] == accession_item.accession_id
+#     assert items_json[0]["location_id"] == accession_item.location_id
 
 
 def validate_links_header(links, limit):
@@ -114,25 +114,25 @@ def test_accessions_list_pagination(
     assert (page_ctr - 1) * limit + len(accessions) % limit == len(accessions)
 
 
-def test_accession_items_create(
-    client, auth_header, make_token, org, accession, location
-):
-    data = {
-        "code": make_token(),
-        "item_type": "plant",
-        "accession_id": accession.id,
-        "location_id": location.id,
-    }
-    resp = client.post(
-        f"/v1/orgs/{org.id}/accessions/{accession.id}/items",
-        headers=auth_header,
-        json=data,
-    )
-    assert resp.status_code == 201, resp.text
-    item_json = resp.json()
-    print(data)
-    print(item_json)
-    assert isinstance(item_json["id"], int)
-    assert item_json["code"] == data["code"]
-    assert item_json["accession_id"] == data["accession_id"]
-    assert item_json["location_id"] == data["location_id"]
+# def test_accession_items_create(
+#     client, auth_header, make_token, org, accession, location
+# ):
+#     data = {
+#         "code": make_token(),
+#         "item_type": "plant",
+#         "accession_id": accession.id,
+#         "location_id": location.id,
+#     }
+#     resp = client.post(
+#         f"/v1/orgs/{org.id}/accessions/{accession.id}/items",
+#         headers=auth_header,
+#         json=data,
+#     )
+#     assert resp.status_code == 201, resp.text
+#     item_json = resp.json()
+#     print(data)
+#     print(item_json)
+#     assert isinstance(item_json["id"], int)
+#     assert item_json["code"] == data["code"]
+#     assert item_json["accession_id"] == data["accession_id"]
+#     assert item_json["location_id"] == data["location_id"]

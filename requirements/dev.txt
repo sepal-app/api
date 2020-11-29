@@ -42,6 +42,7 @@ packaging==20.4           # via pytest, tox
 pathspec==0.8.0           # via black
 pep8-naming==0.11.1       # via -r requirements/dev.in
 pluggy==0.13.1            # via pytest, tox
+psycopg2==2.8.6           # via -r requirements/prod.in
 py==1.8.2                 # via pytest, tox
 pyasn1==0.4.8             # via python-jose, rsa
 pycodestyle==2.6.0        # via flake8, flake8-debugger

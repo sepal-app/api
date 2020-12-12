@@ -50,10 +50,7 @@ def get_jwks(domain: str):
 
 
 def decode_token(token: str = Depends(get_auth_header_token)):
-    print(f"token: {token}")
-    d = verify_id_token(token)
-    print(d)
-    return d
+    return verify_id_token(token)
 
 
 def get_current_user(payload=Depends(decode_token)) -> str:

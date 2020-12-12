@@ -1,8 +1,3 @@
-from functools import lru_cache
-from typing import Dict, List
-from urllib.request import urlopen
-
-import orjson as json
 from firebase_admin.auth import verify_id_token
 from fastapi import Depends, Header, HTTPException
 
@@ -41,12 +36,6 @@ def get_auth_header_token(auth: str = Header(None, alias="authorization")):
         )
     token = parts[1]
     return token
-
-
-@lru_cache
-def get_jwks(domain: str):
-    jsonurl = urlopen("https://" + domain + "/.well-known/jwks.json")
-    return json.loads(jsonurl.read())
 
 
 def decode_token(token: str = Depends(get_auth_header_token)):

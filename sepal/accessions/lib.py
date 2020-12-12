@@ -1,22 +1,16 @@
 from base64 import b64decode
 from contextlib import contextmanager
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import joinedload
 
 from sepal.db import Session
-from sepal.taxa.models import Taxon
 
-from .models import Accession, accession_table, accession_item_table
+from .models import Accession
 from .schema import (
     AccessionCreate,
-    AccessionInDB,
-    AccessionItemCreate,
-    AccessionItemInDB,
     AccessionUpdate,
-    AccessionSchema,
-    TaxonSchema,
 )
 
 
@@ -39,7 +33,9 @@ async def get_accession_by_id(
     include: Optional[List[str]] = None,
 ) -> Accession:
     with accession_query() as q:
-        q = q.filter(Accession.org_id == org_id, Accession.id == accession_id)
+        q = q.filter(Accession.id == accession_id)
+        if org_id:
+            q = q.filter(Accession.org_id == org_id)
         if include is not None:
             for field in include:
                 q = q.options(joinedload(getattr(Accession, field)))
@@ -71,7 +67,7 @@ async def get_accessions(
         return q.limit(limit).all()
 
 
-async def create_accession(org_id: str, values: AccessionCreate) -> AccessionInDB:
+async def create_accession(org_id: str, values: AccessionCreate) -> Accession:
     with Session() as session:
         accession = Accession(org_id=org_id, **values.dict())
         session.add(accession)
@@ -80,14 +76,13 @@ async def create_accession(org_id: str, values: AccessionCreate) -> AccessionInD
         return accession
 
 
-async def update_accession(accession_id: int, data: AccessionUpdate) -> AccessionInDB:
-    # TODO: use the orm
-    async with db.transaction():
-        await db.execute(
-            accession_table.update().where(accession_table.c.id == accession_id),
-            values=data.dict(),
-        )
-        return await get_accession_by_id(accession_id)
+async def update_accession(accession_id: int, data: AccessionUpdate) -> Accession:
+    with Session() as session:
+        q = session.query(Accession)
+        q.filter(Accession.id == accession_id).update(data, synchronize_session=False)
+        acc = await get_accession_by_id(accession_id)
+        print(acc)
+        return acc
 
 
 # async def get_accession_item_by_id(

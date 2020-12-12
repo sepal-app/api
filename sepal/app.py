@@ -1,3 +1,4 @@
+import firebase_admin
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,7 @@ from .locations.views import router as locations_router
 from .organizations.views import router as orgs_router
 from .profile.views import router as profile_router
 from .taxa.views import router as taxa_router
+from .settings import settings
 
 origins = [
     "http://localhost:3000",
@@ -13,6 +15,7 @@ origins = [
 ]
 
 app = FastAPI()
+firebase_admin.initialize_app(options={"projectId": settings.firebase_project_id})
 
 
 app.add_middleware(

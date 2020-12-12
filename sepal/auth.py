@@ -3,8 +3,8 @@ from typing import Dict, List
 from urllib.request import urlopen
 
 import orjson as json
+from firebase_admin.auth import verify_id_token
 from fastapi import Depends, Header, HTTPException
-from jose import jwt
 
 from sepal.settings import settings
 
@@ -50,66 +50,12 @@ def get_jwks(domain: str):
 
 
 def decode_token(token: str = Depends(get_auth_header_token)):
-    jwks = get_jwks(settings.auth0_domain)
-    unverified_header = jwt.get_unverified_header(token)
-    rsa_key = {}
-    for key in jwks["keys"]:
-        if key["kid"] == unverified_header["kid"]:
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"],
-            }
-
-    if not rsa_key:
-        raise AuthError(
-            code="invalid_header", description="Unable to find appropriate key",
-        )
-
-    try:
-        return jwt.decode(
-            token,
-            rsa_key,
-            algorithms=[settings.token_algorithm],
-            audience=settings.token_audience,
-            issuer="https://" + settings.auth0_domain + "/",
-        )
-    except jwt.ExpiredSignatureError:
-        raise AuthError(code="token_expired", description="token is expired")
-    except jwt.JWTClaimsError:
-        raise AuthError(
-            code="invalid_claims",
-            description="incorrect claims, please check the audience and issuer",
-        )
-    except Exception:
-        raise AuthError(
-            code="invalid_header", description="Unable to parse authentication token.",
-        )
+    print(f"token: {token}")
+    d = verify_id_token(token)
+    print(d)
+    return d
 
 
 def get_current_user(payload=Depends(decode_token)) -> str:
     """Return the id of the user"""
     return payload.get("sub", None)
-
-
-def require_scopes(required_scopes: List[str]):
-    def _inner(payload: Dict[str, any] = Depends(decode_token)):
-        scopes = payload.get("scope", "")
-        if not scopes or len(scopes) == 0:
-            raise AuthError(
-                code="invalid_scopes", description="The token scope is invalid"
-            )
-
-        scopes = scopes.split(" ")
-        for scope in required_scopes:
-            if scope not in scopes:
-                raise AuthError(
-                    code="missing_scopes",
-                    description=f'The auth token does not include the "{scope}" scope is invalid',
-                )
-
-        return scopes
-
-    return _inner

@@ -7,7 +7,7 @@
 alembic==1.4.3            # via -r requirements/prod.in
 cachecontrol==0.12.6      # via firebase-admin
 cachetools==4.2.0         # via google-auth
-certifi==2020.11.8        # via requests
+certifi==2020.11.8        # via httpx, requests
 cffi==1.14.0              # via google-crc32c
 chardet==3.0.4            # via requests
 click==7.1.2              # via uvicorn
@@ -25,9 +25,11 @@ google-crc32c==1.0.0      # via google-resumable-media
 google-resumable-media==1.1.0  # via google-cloud-storage
 googleapis-common-protos==1.52.0  # via google-api-core
 grpcio==1.34.0            # via google-api-core
-h11==0.9.0                # via uvicorn
+h11==0.9.0                # via httpcore, uvicorn
+httpcore==0.12.2          # via httpx
 httplib2==0.18.1          # via google-api-python-client, google-auth-httplib2
-idna==2.10                # via requests
+httpx==0.16.1             # via -r requirements/prod.in
+idna==2.10                # via requests, rfc3986
 jinja2==2.11.2            # via -r requirements/prod.in
 mako==1.1.3               # via alembic
 markupsafe==1.1.1         # via jinja2, mako
@@ -44,9 +46,11 @@ python-dateutil==2.8.1    # via alembic
 python-editor==1.0.4      # via alembic
 python-multipart==0.0.5   # via -r requirements/prod.in, fastapi-permissions
 pytz==2020.4              # via google-api-core, google-cloud-firestore
-requests==2.25.0          # via -r requirements/prod.in, cachecontrol, google-api-core, google-cloud-storage
+requests==2.25.0          # via cachecontrol, google-api-core, google-cloud-storage
+rfc3986[idna2008]==1.4.0  # via httpx
 rsa==4.6                  # via google-auth
 six==1.15.0               # via google-api-core, google-api-python-client, google-auth, google-auth-httplib2, google-cloud-core, google-resumable-media, grpcio, protobuf, python-dateutil, python-multipart
+sniffio==1.2.0            # via httpcore, httpx
 sqlalchemy==1.3.20        # via -r requirements/prod.in, alembic
 starlette==0.13.6         # via fastapi
 uritemplate==3.0.1        # via google-api-python-client

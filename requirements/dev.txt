@@ -10,7 +10,7 @@ attrs==19.3.0             # via black, pytest
 black==19.10b0            # via -r requirements/dev.in
 cachecontrol==0.12.6      # via firebase-admin
 cachetools==4.2.0         # via google-auth
-certifi==2020.6.20        # via requests
+certifi==2020.6.20        # via httpx, requests
 cffi==1.14.0              # via google-crc32c
 chardet==3.0.4            # via requests
 click==7.1.2              # via black, uvicorn
@@ -39,9 +39,11 @@ google-crc32c==1.0.0      # via google-resumable-media
 google-resumable-media==1.1.0  # via google-cloud-storage
 googleapis-common-protos==1.52.0  # via google-api-core
 grpcio==1.34.0            # via google-api-core
-h11==0.9.0                # via uvicorn
+h11==0.9.0                # via httpcore, uvicorn
+httpcore==0.12.2          # via httpx
 httplib2==0.18.1          # via google-api-python-client, google-auth-httplib2
-idna==2.9                 # via requests
+httpx==0.16.1             # via -r requirements/prod.in
+idna==2.9                 # via requests, rfc3986
 iniconfig==1.1.1          # via pytest
 isort==5.6.4              # via -r requirements/dev.in
 jinja2==2.11.2            # via -r requirements/prod.in
@@ -77,9 +79,11 @@ python-editor==1.0.4      # via alembic
 python-multipart==0.0.5   # via -r requirements/prod.in, fastapi-permissions
 pytz==2020.4              # via google-api-core, google-cloud-firestore
 regex==2020.6.8           # via black
-requests==2.25.0          # via -r requirements/prod.in, cachecontrol, google-api-core, google-cloud-storage
+requests==2.25.0          # via cachecontrol, google-api-core, google-cloud-storage
+rfc3986[idna2008]==1.4.0  # via httpx
 rsa==4.6                  # via google-auth
 six==1.15.0               # via google-api-core, google-api-python-client, google-auth, google-auth-httplib2, google-cloud-core, google-resumable-media, grpcio, packaging, protobuf, python-dateutil, python-multipart, tox, virtualenv
+sniffio==1.2.0            # via httpcore, httpx
 snowballstemmer==2.0.0    # via pydocstyle
 sqlalchemy==1.3.20        # via -r requirements/prod.in, alembic
 starlette==0.13.6         # via fastapi

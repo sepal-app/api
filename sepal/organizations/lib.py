@@ -1,17 +1,18 @@
-from enum import Enum
+import secrets
 from contextlib import contextmanager
-from itertools import chain
+from enum import Enum
 from typing import List, Optional, Tuple
 
+import httpx
 from fastapi import Depends, Path
-from sqlalchemy import exists, select
 
-from sepal.accessions.lib import AccessionsPermission
 from sepal.auth import get_current_user
 from sepal.db import Session
-from sepal.locations.lib import LocationsPermission
+from sepal.profile.lib import get_profile
 from sepal.profile.models import Profile
-from sepal.taxa.lib import TaxaPermission
+from sepal.invitations.models import Invitation
+from sepal.settings import settings
+from sepal.templates import templates, get_template
 
 from .models import Organization, OrganizationUser, RoleType
 from .schema import OrganizationCreate
@@ -127,3 +128,41 @@ async def get_users(org_id: int) -> Tuple[Profile, RoleType]:
             )
             .all()
         )
+
+
+async def invite_user(org_id: int, invited_by_user_id: str, email: str):
+    with Session() as session:
+        # TODO: if the user already has a user account/profile maybe we just add
+        # them directly to the organization and send them an email telling
+        # them
+        token = secrets.token_urlsafe(16)
+        invitation = Invitation(
+            organization_id=org_id,
+            invited_by=invited_by_user_id,
+            email=email,
+            token=token,
+        )
+        session.add(invitation)
+        session.commit()
+
+        profile = await get_profile(invited_by_user_id)
+        org = await get_organization_by_id(org_id)
+
+        template = get_template("invitation.jinja2.html")
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                settings.mailgun_api_url,
+                auth=("api", settings.mailgun_api_key),
+                data={
+                    "from": "Sepal Support <noreply@sepal.app>",
+                    "subject": "You have been invited to join Sepal",
+                    "html": template.render(
+                        url=f"{settings.app_base_url}/register?invitation={token}",
+                        invited_by=profile.email,
+                        organization_name=org.name,
+                    ),
+                    "to": email,
+                },
+            )
+
+            resp.raise_for_status()

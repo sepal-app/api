@@ -44,3 +44,5 @@ class OrganizationUserSchema(OrganizationSchemaBase):
 
 # class OrganizationInDB(OrganizationBase):
 #     id: int
+class InvitationCreate(BaseModel):
+    emails: List[str]

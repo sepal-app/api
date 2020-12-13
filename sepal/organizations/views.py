@@ -11,9 +11,16 @@ from .lib import (
     get_organization_by_id,
     get_users,
     get_user_organizations,
+    invite_user,
+    verify_org_id,
 )
 from .models import Organization
-from .schema import OrganizationCreate, OrganizationSchema, OrganizationUserSchema
+from .schema import (
+    InvitationCreate,
+    OrganizationCreate,
+    OrganizationSchema,
+    OrganizationUserSchema,
+)
 
 router = APIRouter()
 
@@ -46,7 +53,7 @@ async def create(
 
 @router.get("/{org_id}", response_model=OrganizationSchema)
 async def detail(
-    org_id: int, response: Response, current_user_id=Depends(get_current_user),
+    org_id: int, current_user_id=Depends(get_current_user),
 ) -> Organization:
     """Get the organization details."""
     org = await get_organization_by_id(org_id, current_user_id)
@@ -56,34 +63,35 @@ async def detail(
     return org
 
 
-@router.get(
+@router.post(
     "/{org_id}/invite",
+    status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(check_permission(OrganizationsPermission.UsersInvite))],
+    response_class=Response,  # required for 204 response
 )
 async def invite(
-    org_id: int, response: Response, current_user_id=Depends(get_current_user),
+    invitation: InvitationCreate,
+    org_id: int = Depends(verify_org_id),
+    current_user_id: str = Depends(get_current_user),
 ):
-    org = await get_organization_by_id(org_id, current_user_id)
-    if org is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    return org
+    # TODO:  send these in a pool instead of sequentially
+    for email in invitation.emails:
+        await invite_user(org_id, current_user_id, email)
 
 
 @router.get(
     "/{org_id}/users",
     dependencies=[Depends(check_permission(OrganizationsPermission.UsersList))],
-    # response_model=OrganizationUserSchema,
+    response_model=List[OrganizationUserSchema],
 )
 async def users(
-    org_id: int,
-    response: Response,
-    current_user_id=Depends(get_current_user),
-    response_model=OrganizationUserSchema,
+    org_id: int = Depends(verify_org_id),
+    current_user_id: str = Depends(get_current_user),
 ):
-    org = await get_organization_by_id(org_id, current_user_id)
-    if org is None:
+    if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     result = await get_users(org_id)
-    return [{"profile": profile, "role": role} for profile, role in result]
+    return [
+        OrganizationUserSchema(profile=profile, role=role) for profile, role in result
+    ]

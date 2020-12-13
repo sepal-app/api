@@ -2,7 +2,6 @@ import enum
 
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.schema import UniqueConstraint
 
 from sepal.db import BaseModel, Model, TimestampMixin, utcnow
 

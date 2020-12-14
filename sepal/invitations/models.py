@@ -14,4 +14,4 @@ class Invitation(Model):
     # The user_id of the user who sent the invite
     invited_by = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    acknowledged = Column(DateTime)
+    accepted = Column(DateTime)

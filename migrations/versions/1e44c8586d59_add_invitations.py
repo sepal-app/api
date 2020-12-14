@@ -37,7 +37,7 @@ def upgrade():
         sa.Column("token", sa.String(), nullable=False),
         sa.Column("invited_by", sa.String(), nullable=False),
         sa.Column("email", sa.String(), nullable=False),
-        sa.Column("acknowledged", sa.DateTime(), nullable=True),
+        sa.Column("accepted", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(["organization_id"], ["organization.id"],),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("token"),
@@ -66,6 +66,7 @@ def downgrade():
         ),
         existing_nullable=False,
         existing_server_default=sa.text("'owner'::organization_user_role_enum"),
+        postgresql_using="role::organization_user_role_enum",
     )
     op.drop_table("invitation")
     # ### end Alembic commands ###

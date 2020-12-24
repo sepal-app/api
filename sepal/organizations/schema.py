@@ -1,4 +1,6 @@
+from typing import List
 from pydantic import BaseModel
+
 from sepal.profile.schema import ProfileSchema
 from .models import RoleType
 

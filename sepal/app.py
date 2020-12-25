@@ -1,6 +1,10 @@
+import json
+
 import firebase_admin
+from firebase_admin import credentials
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from .accessions.views import router as accessions_router
 from .invitations.views import router as invitations_router
 from .locations.views import router as locations_router
@@ -15,7 +19,15 @@ origins = [
 ]
 
 app = FastAPI()
-firebase_admin.initialize_app(options={"projectId": settings.firebase_project_id})
+
+firebase_credential = None
+if settings.google_application_credentials_json is not None:
+    credential_data = json.loads(settings.google_application_credentials_json)
+    firebase_credential = credentials.Certificate(credential_data)
+
+firebase_admin.initialize_app(
+    credential=firebase_credential, options={"projectId": settings.firebase_project_id},
+)
 
 app.add_middleware(
     CORSMiddleware,

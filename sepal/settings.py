@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     secret_key: str
 
     firebase_project_id: str
+    google_application_credentials_json: str
 
     mailgun_api_key: str
     mailgun_api_url: str

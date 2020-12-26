@@ -21,7 +21,7 @@ ALTER ROLE sepal_user SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE sepal TO sepal_user;
 ```
 
-### Require environment variables
+### Required environment variables
 
 ```
 # The base URL of the Sepal App

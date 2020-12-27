@@ -29,9 +29,11 @@ async def get_taxon_by_id(
     taxon_id: int,
     org_id: Optional[str] = None,
     include: Optional[List["parent"]] = None,
-) -> TaxonSchema:
+) -> Taxon:
     with taxon_query() as q:
-        q = q.filter(Taxon.org_id == org_id, Taxon.id == taxon_id)
+        q = q.filter(Taxon.id == taxon_id)
+        if org_id:
+            q = q.filter(Taxon.org_id == org_id)
         if include is not None:
             for field in include:
                 q = q.options(joinedload(getattr(Taxon, field)))
@@ -45,7 +47,7 @@ async def get_taxa(
     limit: int = 50,
     cursor: str = None,
     include: Optional[List[str]] = None,
-) -> List[TaxonSchema]:
+) -> List[Taxon]:
     with taxon_query() as q:
         # TODO: if name isn't unique then we can't use it as the cursor so
         # ordering by the name also won't work, maybe if have a primary sort by name
@@ -66,7 +68,7 @@ async def get_taxa(
         return q.limit(limit).all()
 
 
-async def create_taxon(org_id: str, values: TaxonCreate) -> TaxonInDB:
+async def create_taxon(org_id: str, values: TaxonCreate) -> Taxon:
     with Session() as session:
         taxon = Taxon(org_id=org_id, **values.dict())
         session.add(taxon)
@@ -75,10 +77,10 @@ async def create_taxon(org_id: str, values: TaxonCreate) -> TaxonInDB:
         return taxon
 
 
-async def update_taxon(taxon_id: int, data: TaxonUpdate) -> TaxonInDB:
-    # TODO: use orm to update
-    async with db.transaction():
-        await db.execute(
-            taxon_table.update().where(taxon_table.c.id == taxon_id), values=data.dict()
-        )
-        return await get_taxon_by_id(taxon_id)
+async def update_taxon(taxon_id: int, data: TaxonUpdate) -> Taxon:
+    with Session() as session:
+        q = session.query(Taxon)
+        q.filter(Taxon.id == taxon_id).update(data, synchronize_session=False)
+        session.commit()
+        taxon = await get_taxon_by_id(taxon_id)
+        return taxon

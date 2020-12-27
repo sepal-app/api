@@ -80,8 +80,8 @@ async def update_accession(accession_id: int, data: AccessionUpdate) -> Accessio
     with Session() as session:
         q = session.query(Accession)
         q.filter(Accession.id == accession_id).update(data, synchronize_session=False)
+        session.commit()
         acc = await get_accession_by_id(accession_id)
-        print(acc)
         return acc
 
 

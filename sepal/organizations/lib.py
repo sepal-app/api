@@ -118,7 +118,7 @@ async def create_organization(user_id: str, data: OrganizationCreate) -> Organiz
         return org
 
 
-async def get_users(org_id: int) -> Tuple[Profile, RoleType]:
+async def get_users(org_id: int) -> List[Tuple[Profile, RoleType]]:
     with Session() as session:
         return (
             session.query(Profile, OrganizationUser.role)

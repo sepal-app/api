@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from sepal.profile.schema import ProfileSchema
@@ -7,12 +7,12 @@ from .models import RoleType
 
 class OrganizationSchemaBase(BaseModel):
     name: str
-    short_name: str = None
-    address: str = None
-    city: str = None
-    state: str = None
-    country: str = None
-    postal_code: str = None
+    short_name: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
 
 
 class OrganizationSchema(OrganizationSchemaBase):
@@ -39,7 +39,7 @@ class OrganizationUserSchemaBase(BaseModel):
     role: RoleType
 
 
-class OrganizationUserSchema(OrganizationSchemaBase):
+class OrganizationUserSchema(OrganizationUserSchemaBase):
     class Config:
         orm_mode = True
 

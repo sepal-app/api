@@ -1,13 +1,12 @@
 from base64 import b64decode
 from contextlib import contextmanager
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import joinedload
 
 from sepal.db import Session
-from sepal.taxa.models import Taxon
-from .models import Location, location_table
+from .models import Location
 from .schema import LocationCreate, LocationInDB
 
 

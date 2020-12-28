@@ -1,15 +1,14 @@
 from base64 import b64decode
 from contextlib import contextmanager
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import Literal, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, Request, status
 from sqlalchemy.orm import joinedload
 
 from sepal.db import Session
 
-from .models import Taxon, taxon_table
-from .schema import TaxonCreate, TaxonInDB, TaxonSchema, TaxonUpdate
+from .models import Taxon
+from .schema import TaxonCreate, TaxonUpdate
 
 
 class TaxaPermission(str, Enum):
@@ -28,7 +27,7 @@ def taxon_query():
 async def get_taxon_by_id(
     taxon_id: int,
     org_id: Optional[str] = None,
-    include: Optional[List["parent"]] = None,
+    include: Optional[List[Literal["parent"]]] = None,
 ) -> Taxon:
     with taxon_query() as q:
         q = q.filter(Taxon.id == taxon_id)

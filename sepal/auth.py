@@ -1,8 +1,6 @@
 from firebase_admin.auth import verify_id_token
 from fastapi import Depends, Header, HTTPException
 
-from sepal.settings import settings
-
 
 class AuthError(HTTPException):
     def __init__(self, code, description, status_code=401):
@@ -43,5 +41,5 @@ def decode_token(token: str = Depends(get_auth_header_token)):
 
 
 def get_current_user(payload=Depends(decode_token)) -> str:
-    """Return the id of the user"""
+    """Return the id of the user."""
     return payload.get("sub", None)

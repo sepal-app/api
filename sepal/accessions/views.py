@@ -17,10 +17,7 @@ from .models import Accession
 from .schema import (
     AccessionCreate,
     AccessionInDB,
-    AccessionItemCreate,
-    AccessionItemInDB,
     AccessionSchema,
-    AccessionUpdate,
 )
 from sepal.organizations.lib import verify_org_id
 
@@ -36,7 +33,7 @@ async def list(
     q: Optional[str] = None,
     cursor: Optional[str] = None,
     limit: int = 50,
-    include: Optional[List["taxon"]] = Query(None),
+    include: Optional[List[str]] = Query(None, regex="^(taxon)$"),
 ) -> List[AccessionSchema]:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -70,7 +67,7 @@ async def detail(
     accession_id: int,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-    include: Optional[List["taxon"]] = Query(None),
+    include: Optional[List[str]] = Query(None, regex="^(taxon)$"),
 ) -> AccessionSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

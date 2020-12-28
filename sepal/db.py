@@ -22,7 +22,7 @@ def Session():
     try:
         yield session
         # session.commit()
-    except:
+    except Exception:
         session.rollback()
         raise
     finally:

@@ -5,7 +5,7 @@ from sqlalchemy.orm import object_session
 
 from sepal.db import Session
 from .models import Profile
-from .schema import ProfileCreate, ProfileSchema, ProfileUpdate
+from .schema import ProfileCreate, ProfileUpdate
 
 
 @contextmanager

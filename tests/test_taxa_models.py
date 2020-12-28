@@ -1,6 +1,8 @@
+import pytest
 import sqlalchemy as sa
-from sepal.taxa.models import Rank, Taxon, taxon_table
-from .factories import TaxonFactory
+
+from sepal.taxa.models import Rank, Taxon
+
 from .fixtures import *  # noqa: F401,F403
 
 

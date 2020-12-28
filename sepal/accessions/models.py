@@ -27,8 +27,6 @@ class Accession(Model):
     )
 
 
-accession_table = Accession.__table__
-
 # The SQLAlchemy enum type will persist the names rather than the values
 AccessionItemType = enum.Enum(
     "AccessionItemType", ["plant", "seed", "vegetative", "tissue", "other"]

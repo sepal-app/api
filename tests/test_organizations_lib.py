@@ -1,10 +1,9 @@
-from sepal.organizations.lib import create_organization, assign_role
+from sepal.organizations.lib import create_organization
 from sepal.organizations.schema import OrganizationCreate
 from sepal.permissions import AllPermissions, has_permission
 
 import pytest
 
-from .factories import OrganizationFactory
 from .fixtures import *  # noqa: F401,F403
 
 

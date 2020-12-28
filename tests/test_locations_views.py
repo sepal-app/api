@@ -1,8 +1,6 @@
 from random import randint
-from sepal.locations.lib import LocationsPermission
-from sepal.organizations.lib import remove_role
-from sepal.organizations.models import RoleType
 
+from .factories import OrganizationFactory
 from .fixtures import *  # noqa: F401,F403
 
 

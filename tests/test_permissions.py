@@ -1,9 +1,8 @@
-from random import choice
-
 import pytest
 
 from sepal.permissions import has_permission
-from sepal.organizations.lib import assign_role, remove_role
+from sepal.organizations.lib import remove_role
+from sepal.organizations.models import RoleType
 
 from .fixtures import *  # noqa: F401,F403
 

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel, validator
 from .models import Rank
@@ -37,10 +37,6 @@ class TaxonInDB(TaxonSchema):
 
 
 class TaxonCreate(TaxonSchemaBase):
-    pass
-
-
-class TaxonUpdate(TaxonSchemaBase):
     pass
 
 

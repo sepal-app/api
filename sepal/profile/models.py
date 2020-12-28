@@ -1,5 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy import Column, String
 
 from sepal.db import Model
 

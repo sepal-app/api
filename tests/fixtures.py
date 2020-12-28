@@ -1,11 +1,9 @@
 import secrets
-from itertools import chain
 from random import choice
 
 import pytest
 from fastapi.testclient import TestClient
 
-import sepal.db as _db
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser, RoleType
 from sepal.permissions import AllPermissions

@@ -1,6 +1,9 @@
 from random import randint
 from urllib.parse import parse_qs, urlparse
 
+import pytest
+
+from .factories import AccessionFactory
 from .fixtures import *  # noqa: F401,F403
 
 
@@ -67,7 +70,7 @@ def test_accession_detail_missing(client, auth_header, org, accession):
 
 
 def validate_links_header(links, limit):
-    for rel, value in links.items():
+    for _, value in links.items():
         url = urlparse(value["url"])
         assert url.scheme == "http"
         qs = parse_qs(url.query)
@@ -82,7 +85,7 @@ def validate_links_header(links, limit):
     "num_accessions,limit", [(201, 20), (100, 20), (20, 20), (1, 50)]
 )
 def test_accessions_list_pagination(
-    client, auth_header, org, taxon, make_token, num_accessions, limit
+    client, auth_header, org, taxon, num_accessions, limit
 ):
     accessions = [
         AccessionFactory(org_id=org.id, taxon_id=taxon.id, code=_)

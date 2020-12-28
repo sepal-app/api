@@ -24,7 +24,7 @@ async def list(
     q: Optional[str] = None,
     cursor: Optional[str] = None,
     limit: int = 50,
-    include: Optional[List["parent"]] = Query(None),
+    include: Optional[List[str]] = Query(None, regex="^(parent)$"),
 ) -> List[TaxonSchema]:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -61,7 +61,7 @@ async def detail(
     taxon_id: int,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-    include: Optional[List["parent"]] = Query(None),
+    include: Optional[List[str]] = Query(None, regex="^(parent)$"),
 ) -> TaxonInDB:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

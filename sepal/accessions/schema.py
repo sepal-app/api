@@ -1,7 +1,6 @@
 from typing import Literal, Optional
 
 from pydantic import BaseModel
-from sepal.taxa.schema import TaxonSchema, TaxonInDB
 
 
 class AccessionSchemaBase(BaseModel):

@@ -47,7 +47,7 @@ async def get_accessions(
     org_id: str,
     query: Optional[str] = None,
     limit: int = 50,
-    cursor: str = None,
+    cursor: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> List[Accession]:
     with accession_query() as q:

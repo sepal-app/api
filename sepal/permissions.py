@@ -1,5 +1,4 @@
 from enum import Enum
-from functools import partial
 from itertools import chain
 from typing import Union
 
@@ -13,7 +12,7 @@ from sepal.organizations.lib import (
     get_user_role,
     verify_org_id,
 )
-from sepal.organizations.models import Organization, OrganizationUser, RoleType
+from sepal.organizations.models import RoleType
 from sepal.taxa.lib import TaxaPermission
 
 

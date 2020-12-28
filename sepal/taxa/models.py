@@ -3,7 +3,7 @@ import enum
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import backref, relationship
 
-from sepal.db import Model, metadata
+from sepal.db import Model
 
 ranks = [
     "kingdom",

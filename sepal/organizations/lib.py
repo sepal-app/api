@@ -12,7 +12,7 @@ from sepal.profile.lib import get_profile
 from sepal.profile.models import Profile
 from sepal.invitations.models import Invitation
 from sepal.settings import settings
-from sepal.templates import templates, get_template
+from sepal.templates import get_template
 
 from .models import Organization, OrganizationUser, RoleType
 from .schema import OrganizationCreate
@@ -40,9 +40,10 @@ def organization_user_query():
 
 
 async def verify_org_id(
-    current_user_id=Depends(get_current_user), org_id: int = Path(...),
+    current_user_id=Depends(get_current_user),
+    org_id: int = Path(...),
 ) -> Optional[int]:
-    """Return True/False if the current user is a member of an organization"""
+    """Return True/False if the current user is a member of an organization."""
     return org_id if await is_member(org_id, current_user_id) else None
 
 

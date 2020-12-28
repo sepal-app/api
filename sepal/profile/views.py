@@ -1,9 +1,6 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from sepal.auth import get_current_user
-from sepal.permissions import check_permission
 
 from .lib import create_profile, get_profile, update_profile
 from .models import Profile

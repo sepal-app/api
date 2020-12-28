@@ -1,9 +1,6 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from sepal.auth import get_current_user
-from sepal.permissions import check_permission
 
 from .lib import accept_invitation
 

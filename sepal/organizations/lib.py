@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 
 import httpx
 from fastapi import Depends, Path
+from sqlalchemy.orm import object_session
 
 from sepal.auth import get_current_user
 from sepal.db import Session
@@ -15,7 +16,7 @@ from sepal.settings import settings
 from sepal.templates import get_template
 
 from .models import Organization, OrganizationUser, RoleType
-from .schema import OrganizationCreate
+from .schema import OrganizationCreate, OrganizationUpdate
 
 
 class OrganizationsPermission(str, Enum):
@@ -61,6 +62,11 @@ async def is_member(org_id: int, user_id: str, role: Optional[RoleType] = None) 
 async def get_organization_by_id(
     org_id: int, user_id: Optional[str] = None
 ) -> Organization:
+    """Get the organization.
+
+    If a user_id is provided it will only return the organization if the user
+    is a member of the organization.
+    """
     with organization_query() as q:
         q = q.filter_by(id=org_id)
         if user_id is not None:
@@ -70,6 +76,7 @@ async def get_organization_by_id(
 
 
 async def get_user_organizations(user_id: str) -> List[Organization]:
+    """Get all of the organizations for a user."""
     with organization_query() as q:
         return (
             q.join(OrganizationUser).filter(OrganizationUser.user_id == user_id).all()
@@ -114,6 +121,23 @@ async def create_organization(user_id: str, data: OrganizationCreate) -> Organiz
             organization=org, user_id=user_id, role=RoleType.Owner
         )
         session.add_all([org, org_user])
+        session.commit()
+        session.refresh(org)
+        return org
+
+
+async def update_organization(
+    org_id: str, data: OrganizationUpdate
+) -> Optional[Organization]:
+    with organization_query() as q:
+        org = q.filter_by(id=org_id).first()
+        if not org:
+            return None
+
+        for key, value in data.dict().items():
+            setattr(org, key, value)
+
+        session = object_session(org)
         session.commit()
         session.refresh(org)
         return org

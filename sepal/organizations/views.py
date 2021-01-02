@@ -12,6 +12,7 @@ from .lib import (
     get_users,
     get_user_organizations,
     invite_user,
+    update_organization,
     verify_org_id,
 )
 from .models import Organization
@@ -19,6 +20,7 @@ from .schema import (
     InvitationCreate,
     OrganizationCreate,
     OrganizationSchema,
+    OrganizationUpdate,
     OrganizationUserSchema,
 )
 
@@ -26,7 +28,8 @@ router = APIRouter()
 
 
 @router.get(
-    "", response_model=List[OrganizationSchema],
+    "",
+    response_model=List[OrganizationSchema],
 )
 async def list(current_user_id=Depends(get_current_user)) -> List[Organization]:
     """Return the list of the user's organizations.
@@ -39,7 +42,8 @@ async def list(current_user_id=Depends(get_current_user)) -> List[Organization]:
 
 
 @router.post(
-    "", status_code=status.HTTP_201_CREATED,
+    "",
+    status_code=status.HTTP_201_CREATED,
 )
 async def create(
     org: OrganizationCreate, current_user_id=Depends(get_current_user)
@@ -51,9 +55,24 @@ async def create(
     return await create_organization(current_user_id, org)
 
 
+@router.patch("/{org_id}", response_model=OrganizationSchema)
+async def update(
+    organization: OrganizationUpdate,
+    current_user_id=Depends(get_current_user),
+    org_id=Depends(verify_org_id),
+) -> Organization:
+    updated_organization = await update_organization(org_id, organization)
+    if not updated_organization:
+        # can't update a organization if one hasn't been created for the user
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return updated_organization
+
+
 @router.get("/{org_id}", response_model=OrganizationSchema)
 async def detail(
-    org_id: int, current_user_id=Depends(get_current_user),
+    org_id: int,
+    current_user_id=Depends(get_current_user),
 ) -> Organization:
     """Get the organization details."""
     org = await get_organization_by_id(org_id, current_user_id)

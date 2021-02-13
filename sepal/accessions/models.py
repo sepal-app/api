@@ -8,12 +8,17 @@ from sqlalchemy.schema import UniqueConstraint
 from sepal.db import Model
 
 AccessionPermission = Literal[
-    "accessions:read", "accessions:create", "accessions.update", "accessions.delete",
+    "accessions:read",
+    "accessions:create",
+    "accessions.update",
+    "accessions.delete",
 ]
 
 
 class Accession(Model):
+    __track_activity__ = True
     __table_args__ = (UniqueConstraint("org_id", "code"), {"extend_existing": True})
+
     code = Column(String(64), nullable=False)
     taxon_id = Column(Integer, ForeignKey("taxon.id"), nullable=False)
     org_id = Column(Integer, ForeignKey("organization.id"), nullable=False)
@@ -34,6 +39,8 @@ AccessionItemType = enum.Enum(
 
 
 class AccessionItem(Model):
+    __track_activity__ = True
+
     code = Column(String(12), nullable=False)
     item_type = Column(String, Enum(AccessionItemType), nullable=False)
 
@@ -49,6 +56,3 @@ class AccessionItem(Model):
     organization = relationship(
         "Organization", backref=backref("accession_items", cascade="all, delete-orphan")
     )
-
-
-accession_item_table = AccessionItem.__table__

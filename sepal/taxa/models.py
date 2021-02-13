@@ -24,9 +24,15 @@ Rank = enum.Enum("Rank", [(r.capitalize(), r) for r in ranks])
 
 
 class Taxon(Model):
+    __track_activity__ = True
+
     name = Column(String(128), nullable=False)
     rank = Column(
-        Enum(Rank, name="taxon_rank_enum", values_callable=lambda _: ranks,),
+        Enum(
+            Rank,
+            name="taxon_rank_enum",
+            values_callable=lambda _: ranks,
+        ),
         nullable=False,
     )
 
@@ -40,5 +46,3 @@ class Taxon(Model):
 
 # declare outside the class definition since we need to reference Taxon.id
 Taxon.parent = relationship(Taxon, uselist=False, remote_side=Taxon.id)
-
-taxon_table = Taxon.__table__

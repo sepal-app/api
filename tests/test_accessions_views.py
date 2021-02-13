@@ -53,7 +53,9 @@ def test_accession_detail(client, auth_header, org, accession):
 
 def test_accession_detail_missing(client, auth_header, org, accession):
     other_accession_id = randint(1, 100)
-    resp = client.get(f"/v1/orgs/{org.id}/{other_accession_id}", headers=auth_header)
+    resp = client.get(
+        f"/v1/orgs/{org.id}/accessions/{other_accession_id}", headers=auth_header
+    )
     assert resp.status_code == 404
 
 

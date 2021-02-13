@@ -4,6 +4,8 @@ from random import choice
 import pytest
 from fastapi.testclient import TestClient
 
+import sepal.db as db
+from sepal.requestvars import request_global
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser, RoleType
 from sepal.permissions import AllPermissions
@@ -49,7 +51,12 @@ def current_user_id(make_token):
     from sepal.auth import get_current_user
 
     user_id = make_token()
-    app.dependency_overrides[get_current_user] = lambda: user_id
+
+    def _get_current_user():
+        request_global().current_user_id = user_id
+        return user_id
+
+    app.dependency_overrides[get_current_user] = _get_current_user
     yield user_id
     del app.dependency_overrides[get_current_user]
 
@@ -64,6 +71,9 @@ def profile(session, current_user_id):
 
 @pytest.fixture
 def auth_header(make_token):
+    # This token is junk and trying to authorize against it won't work. Instead
+    # of override the dependency injector for get_current_user in the
+    # current_user_id fixture
     return {"authorization": f"Bearer {make_token()}"}
 
 

@@ -12,6 +12,7 @@ from sepal.db import Session
 from sepal.profile.lib import get_profile
 from sepal.profile.models import Profile
 from sepal.invitations.models import Invitation
+from sepal.requestvars import request_global
 from sepal.settings import settings
 from sepal.templates import get_template
 
@@ -45,7 +46,11 @@ async def verify_org_id(
     org_id: int = Path(...),
 ) -> Optional[int]:
     """Return True/False if the current user is a member of an organization."""
-    return org_id if await is_member(org_id, current_user_id) else None
+    if await is_member(org_id, current_user_id):
+        if current_user_id == request_global().current_user_id:
+            request_global().current_org_id = org_id
+        return org_id
+    return None
 
 
 async def is_member(org_id: int, user_id: str, role: Optional[RoleType] = None) -> bool:

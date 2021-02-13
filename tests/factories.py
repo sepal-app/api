@@ -1,16 +1,15 @@
 import factory
 import factory.fuzzy
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session
 
 import sepal.db as db
 from sepal.accessions.models import Accession, AccessionItem
 from sepal.locations.models import Location
 from sepal.organizations.models import Organization
 from sepal.profile.models import Profile
-
 from sepal.taxa.models import Taxon
 
-Session = scoped_session(sessionmaker(bind=db.engine))
+Session = scoped_session(db._Session)
 
 
 class OrganizationFactory(factory.alchemy.SQLAlchemyModelFactory):

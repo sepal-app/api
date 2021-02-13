@@ -1,8 +1,9 @@
 import re
 from contextlib import contextmanager
 
+import orjson
 from sqlalchemy import Column, DateTime, ForeignKey, Integer
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
 from sqlalchemy.orm import Query, sessionmaker
@@ -10,7 +11,12 @@ from sqlalchemy.sql import expression
 
 from sepal.settings import settings
 
-engine = create_engine(settings.database_url)
+engine = create_engine(
+    settings.database_url,
+    json_serializer=lambda obj: orjson.dumps(obj).decode("utf8"),
+    json_deserializer=lambda obj: orjson.loads(obj),
+)
+
 
 _Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

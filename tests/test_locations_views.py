@@ -43,5 +43,7 @@ def test_location_detail(client, auth_header, org, current_user_id, location):
 
 def test_location_detail_missing(client, auth_header, org, location):
     other_location_id = randint(1, 100)
-    resp = client.get(f"/v1/orgs/{org.id}/{other_location_id}", headers=auth_header)
+    resp = client.get(
+        f"/v1/orgs/{org.id}/locations/{other_location_id}", headers=auth_header
+    )
     assert resp.status_code == 404

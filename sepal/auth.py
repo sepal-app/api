@@ -1,6 +1,8 @@
 from firebase_admin.auth import verify_id_token
 from fastapi import Depends, Header, HTTPException
 
+from .requestvars import request_global
+
 
 class AuthError(HTTPException):
     def __init__(self, code, description, status_code=401):
@@ -41,5 +43,7 @@ def decode_token(token: str = Depends(get_auth_header_token)):
 
 
 def get_current_user(payload=Depends(decode_token)) -> str:
-    """Return the id of the user."""
-    return payload.get("sub", None)
+    """Set the current user id in the request context and return the id."""
+    current_user_id = payload.get("sub", None)
+    request_global().current_user_id = current_user_id
+    return current_user_id

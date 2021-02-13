@@ -30,7 +30,7 @@ def test_taxon_detail(client, auth_header, org, taxon):
     assert taxon_json["rank"] == taxon.rank.value
 
 
-def test_taxon_detail_missing(client, auth_header, org, taxon):
+def test_taxon_detail_missing(client, current_user_id, auth_header, org, taxon):
     other_taxon_id = randint(1, 100)
-    resp = client.get(f"/v1/orgs/{org.id}/{other_taxon_id}", headers=auth_header)
+    resp = client.get(f"/v1/orgs/{org.id}/taxa/{other_taxon_id}", headers=auth_header)
     assert resp.status_code == 404

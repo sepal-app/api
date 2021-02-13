@@ -14,6 +14,8 @@ class RoleType(str, enum.Enum):
 
 
 class Organization(Model):
+    __track_activity__ = True
+
     name = Column(String(128))
     short_name = Column(String(64))
     address = Column(String(1024))

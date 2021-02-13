@@ -5,6 +5,8 @@ from sepal.db import Model
 
 
 class Location(Model):
+    __track_activity__ = True
+
     name = Column(String(64), nullable=False)
     code = Column(String(64), nullable=False)
     description = Column(String(512))
@@ -14,6 +16,3 @@ class Location(Model):
     organization = relationship(
         "Organization", backref=backref("locations", cascade="all, delete-orphan")
     )
-
-
-location_table = Location.__table__

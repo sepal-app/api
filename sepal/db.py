@@ -2,11 +2,10 @@ import re
 from contextlib import contextmanager
 
 import orjson
-from sqlalchemy import Column, DateTime, ForeignKey, Integer
-from sqlalchemy import create_engine, event
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, create_engine, event
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
-from sqlalchemy.orm import Query, sessionmaker
+from sqlalchemy.orm import Query, scoped_session, sessionmaker
 from sqlalchemy.sql import expression
 
 from sepal.settings import settings
@@ -18,16 +17,20 @@ engine = create_engine(
 )
 
 
-_Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = scoped_session(session_factory)
 
 
 @contextmanager
-def Session():
+def with_transaction():
     """Provide a transactional scope around a series of operations."""
-    session = _Session()
+    yield Session()
+    return
+    session = session_factory()
+
     try:
         yield session
-        # session.commit()
+        session.commit()
     except Exception:
         session.rollback()
         raise

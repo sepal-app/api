@@ -1,18 +1,55 @@
-from sqlalchemy.orm import attributes
-from sqlalchemy.orm import object_mapper
-from sqlalchemy.orm.exc import UnmappedColumnError
-from sqlalchemy.orm.properties import RelationshipProperty
-import sqlalchemy.dialects.postgresql as pg
+from base64 import b64decode
+from contextlib import contextmanager
+from enum import Enum
+from typing import List, Optional
 
-# from sepal.db import
+import sqlalchemy as sa
+from sqlalchemy import event
+import sqlalchemy.dialects.postgresql as pg
+from sqlalchemy.orm import RelationshipProperty, attributes, joinedload, object_mapper
+from sqlalchemy.orm.exc import UnmappedColumnError
+
+import sepal.db as db
+from sepal.profile.models import Profile
 from sepal.requestvars import request_global
+
 from .models import Activity
 
 
-# def query_activities(mapper, id):
-#     local_table = mapper.local_table.name
-#     activities = session.query(Activity).filter_by(table=local_table, table_id=id).all()
-#     pass
+class ActivityPermission(str, Enum):
+    Read = "activity:read"
+
+
+@contextmanager
+def activity_query():
+    yield db.Session().query(Activity)
+
+
+#
+async def get_activity(
+    org_id: str,
+    limit: int = 50,
+    cursor: str = None,
+    include: Optional[List[str]] = None,
+) -> List[Activity]:
+    with activity_query() as q:
+        q = q.filter(
+            sa.or_(
+                Activity.data_before["org_id"].as_integer() == org_id,
+                Activity.data_after["org_id"].as_integer() == org_id,
+            ),
+        ).order_by(Activity.timestamp.desc())
+        q = q.options(joinedload(Activity.profile))
+
+        if cursor is not None:
+            decoded_cursor = b64decode(cursor).decode()
+            q = q.filter(Activity.timestamp > decoded_cursor)
+
+        if include is not None:
+            for field in include:
+                q = q.options(joinedload(getattr(Activity, field)))
+
+        return q.limit(limit).all()
 
 
 def versioned_objects(iter_):
@@ -21,16 +58,23 @@ def versioned_objects(iter_):
             yield obj
 
 
-def create_activity(obj, session, deleted=False):
+def create_activity(obj, session, state=None):
+    """Create a new activity.
+
+    This function will only work in the context of a request since it requires
+    that the current_user_id is set in the request_global()
+
+    """
     if obj.id is None:
+        # We can't create an activity for a resource without an id. This can
+        # happen if this funtion is called in the "before_flush" event for new
+        # objects. When we call this in the "after_flush" the object will still
+        # be in session.new but will now have an id.
         return
+
     mapper = object_mapper(obj)
-    # activity_mapper = obj.__activity_mapper__
-    # print(activity_mapper)
-    # state = attributes.instance_state(obj)
     before = {}
     after = {}
-    # attr = {}
     obj_changed = False
     for om in mapper.iterate_to_root():
         for col in om.local_table.c:
@@ -85,18 +129,40 @@ def create_activity(obj, session, deleted=False):
 
     activity = Activity()
     activity.user_id = request_global().current_user_id
-    activity.data_before = before
-    activity.data_after = after if not deleted else None
+    activity.data_before = before if state != "new" else None
+    activity.data_after = after if state != "deleted" else None
     activity.table = mapper.local_table.name
     activity.table_id = obj.id
     session.add(activity)
     return activity
 
 
-def track_session_listener(session, _flush_context, _instances):
-    for obj in versioned_objects(session.new):
-        create_activity(obj, session)
+def before_flush_listener(session, _flush_context, _instances=None):
     for obj in versioned_objects(session.dirty):
-        create_activity(obj, session)
+        create_activity(obj, session, state="dirty")
     for obj in versioned_objects(session.deleted):
-        create_activity(obj, session, deleted=True)
+        create_activity(obj, session, state="deleted")
+
+
+def after_flush_listener(session, _flush_context):
+    # In order to create an activity for the new objects we need the objects
+    # id which doesn't get assigned until after a flush which means we need
+    # to create our own session and merge the activity into it so we can
+    # commit it since the original session might not get flushed again.
+    new_session = db.session_factory()
+    for obj in versioned_objects(session.new):
+        activity = create_activity(obj, session, state="new")
+        new_session.merge(activity)
+
+    new_session.flush()
+
+
+def init_session_tracking(session):
+    event.listen(session, "before_flush", before_flush_listener)
+    event.listen(session, "after_flush", after_flush_listener)
+
+    def unregister():
+        event.remove(session, "before_flush", before_flush_listener)
+        event.remove(session, "after_flush", after_flush_listener)
+
+    return unregister

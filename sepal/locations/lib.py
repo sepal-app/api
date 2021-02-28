@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from sqlalchemy.orm import joinedload
 
-from sepal.db import Session
+import sepal.db as db
 from .models import Location
 from .schema import LocationCreate, LocationInDB
 
@@ -17,19 +17,15 @@ class LocationsPermission(str, Enum):
     Delete = "locations:delete"
 
 
-# LocationPermission = Literal[
-#     "locations:read", "locations:create", "locations.update", "locations.delete",
-# ]
-
-
 @contextmanager
 def location_query():
-    with Session() as session:
-        yield session.query(Location)
+    yield db.Session().query(Location)
 
 
 async def get_location_by_id(
-    location_id: int, org_id: Optional[str] = None, include: Optional[List[str]] = None,
+    location_id: int,
+    org_id: Optional[str] = None,
+    include: Optional[List[str]] = None,
 ) -> Location:
     with location_query() as q:
         q = q.filter(Location.org_id == org_id, Location.id == location_id)
@@ -65,9 +61,9 @@ async def get_locations(
 
 
 async def create_location(org_id: str, values: LocationCreate) -> LocationInDB:
-    with Session() as session:
-        location = Location(org_id=org_id, **values.dict())
-        session.add(location)
-        session.commit()
-        session.refresh(location)
-        return location
+    session = db.Session()
+    location = Location(org_id=org_id, **values.dict())
+    session.add(location)
+    session.flush()
+    session.refresh(location)
+    return location

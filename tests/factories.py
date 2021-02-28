@@ -9,7 +9,7 @@ from sepal.organizations.models import Organization
 from sepal.profile.models import Profile
 from sepal.taxa.models import Taxon
 
-Session = scoped_session(db._Session)
+Session = scoped_session(db.session_factory)
 
 
 class OrganizationFactory(factory.alchemy.SQLAlchemyModelFactory):

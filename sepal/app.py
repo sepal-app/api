@@ -9,8 +9,9 @@ from sqlalchemy import event
 
 import sepal.requestvars as requestvars
 import sepal.db as db
-from .activity.lib import track_session_listener
 from .accessions.views import router as accessions_router
+from .activity.lib import init_session_tracking
+from .activity.views import router as activity_router
 from .invitations.views import router as invitations_router
 from .locations.views import router as locations_router
 from .organizations.views import router as orgs_router
@@ -35,9 +36,17 @@ async def session_tracking(request: Request, call_next):
     change as well.
 
     """
-    event.listen(db._Session, "before_flush", track_session_listener)
+    unregister = init_session_tracking(db.Session)
     response = await call_next(request)
-    event.remove(db._Session, "before_flush", track_session_listener)
+    unregister()
+    return response
+
+
+@app.middleware("http")
+async def init_scoped_session(request: Request, call_next):
+    db.Session()
+    response = await call_next(request)
+    db.Session.remove()
     return response
 
 
@@ -46,6 +55,11 @@ async def init_requestvars(request: Request, call_next):
     initial = types.SimpleNamespace()
     requestvars.init(initial)
     return await call_next(request)
+
+
+# TODO: consider creating a profile if a user logs in but doesn't have a
+# profile...the only thing that sucks if that every request when then have to
+# check for a profile
 
 
 firebase_credential = None
@@ -68,6 +82,7 @@ app.add_middleware(
 )
 
 app.include_router(accessions_router, prefix="/v1/orgs/{org_id}/accessions")
+app.include_router(activity_router, prefix="/v1/orgs/{org_id}/activity")
 app.include_router(locations_router, prefix="/v1/orgs/{org_id}/locations")
 app.include_router(orgs_router, prefix="/v1/orgs")
 app.include_router(taxa_router, prefix="/v1/orgs/{org_id}/taxa")

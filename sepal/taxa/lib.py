@@ -3,9 +3,9 @@ from contextlib import contextmanager
 from enum import Enum
 from typing import Literal, List, Optional
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, object_session
 
-from sepal.db import Session
+import sepal.db as db
 
 from .models import Taxon
 from .schema import TaxonCreate, TaxonUpdate
@@ -20,8 +20,7 @@ class TaxaPermission(str, Enum):
 
 @contextmanager
 def taxon_query():
-    with Session() as session:
-        yield session.query(Taxon)
+    yield db.Session().query(Taxon)
 
 
 async def get_taxon_by_id(
@@ -68,18 +67,23 @@ async def get_taxa(
 
 
 async def create_taxon(org_id: str, values: TaxonCreate) -> Taxon:
-    with Session() as session:
-        taxon = Taxon(org_id=org_id, **values.dict())
-        session.add(taxon)
-        session.commit()
-        session.refresh(taxon)
-        return taxon
+    session = db.Session()
+    session.begin()
+    taxon = Taxon(org_id=org_id, **values.dict())
+    session.add(taxon)
+    session.commit()
+    session.refresh(taxon)
+    return taxon
 
 
 async def update_taxon(taxon_id: int, data: TaxonUpdate) -> Taxon:
-    with Session() as session:
-        q = session.query(Taxon)
-        q.filter(Taxon.id == taxon_id).update(data, synchronize_session=False)
-        session.commit()
-        taxon = await get_taxon_by_id(taxon_id)
+    with taxon_query() as query:
+        taxon = query.get(taxon_id)
+
+        # use setattr on the instance instead of using the faster query.update()
+        # so that the before_flush event gets fired
+        for key, value in data.dict().items():
+            setattr(taxon, key, value)
+
+        db.Session().commit()
         return taxon

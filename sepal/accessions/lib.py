@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from sqlalchemy.orm import joinedload
 
-from sepal.db import Session
+import sepal.db as db
 
 from .models import Accession
 from .schema import (
@@ -23,8 +23,7 @@ class AccessionsPermission(str, Enum):
 
 @contextmanager
 def accession_query():
-    with Session() as session:
-        yield session.query(Accession)
+    yield db.Session().query(Accession)
 
 
 async def get_accession_by_id(
@@ -68,21 +67,25 @@ async def get_accessions(
 
 
 async def create_accession(org_id: str, values: AccessionCreate) -> Accession:
-    with Session() as session:
-        accession = Accession(org_id=org_id, **values.dict())
-        session.add(accession)
-        session.commit()
-        session.refresh(accession)
-        return accession
+    session = db.Session()
+    accession = Accession(org_id=org_id, **values.dict())
+    session.add(accession)
+    session.commit()
+    session.refresh(accession)
+    return accession
 
 
 async def update_accession(accession_id: int, data: AccessionUpdate) -> Accession:
-    with Session() as session:
-        q = session.query(Accession)
-        q.filter(Accession.id == accession_id).update(data, synchronize_session=False)
-        session.commit()
-        acc = await get_accession_by_id(accession_id)
-        return acc
+    with accession_query() as query:
+        accession = query.get(accession_id)
+
+        # use setattr on the instance instead of using the faster query.update()
+        # so that the before_flush event gets fired
+        for key, value in data.dict().items():
+            setattr(accession, key, value)
+
+        db.Session().commit()
+        return accession
 
 
 # async def get_accession_item_by_id(

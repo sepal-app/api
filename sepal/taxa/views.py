@@ -55,7 +55,8 @@ async def create(
 
 
 @router.get(
-    "/{taxon_id}", dependencies=[Depends(check_permission(TaxaPermission.Read))],
+    "/{taxon_id}",
+    dependencies=[Depends(check_permission(TaxaPermission.Read))],
 )
 async def detail(
     taxon_id: int,
@@ -75,7 +76,8 @@ async def detail(
 
 
 @router.patch(
-    "/{taxon_id}", dependencies=[Depends(check_permission(TaxaPermission.Update))],
+    "/{taxon_id}",
+    dependencies=[Depends(check_permission(TaxaPermission.Update))],
 )
 async def update(
     taxon_id: int,

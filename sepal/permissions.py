@@ -5,6 +5,7 @@ from typing import Union
 from fastapi import Depends, HTTPException
 
 from sepal.accessions.lib import AccessionsPermission
+from sepal.activity.lib import ActivityPermission
 from sepal.auth import get_current_user
 from sepal.locations.lib import LocationsPermission
 from sepal.organizations.lib import (
@@ -25,6 +26,7 @@ class PermissionsPermission(str, Enum):
 
 PermissionType = Union[
     AccessionsPermission,
+    ActivityPermission,
     LocationsPermission,
     OrganizationsPermission,
     PermissionsPermission,
@@ -34,6 +36,7 @@ PermissionType = Union[
 AllPermissions = list(
     chain(
         AccessionsPermission,
+        ActivityPermission,
         LocationsPermission,
         OrganizationsPermission,
         PermissionsPermission,
@@ -41,6 +44,7 @@ AllPermissions = list(
     )
 )
 
+# Define the permissions allowed by each role type
 RolePermissions = {
     RoleType.Guest: [
         AccessionsPermission.Read,
@@ -48,6 +52,7 @@ RolePermissions = {
         TaxaPermission.Read,
     ],
     RoleType.Member: list(AccessionsPermission)
+    + list(ActivityPermission)
     + list(LocationsPermission)
     + list(TaxaPermission),
 }

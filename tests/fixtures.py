@@ -36,8 +36,9 @@ def client():
 
 @pytest.fixture
 def session():
-    s = Session()
-    yield s
+    with Session() as session:
+        yield session
+
     Session.remove()
 
 

@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Optional
 
 import sqlalchemy as sa
-from sqlalchemy import event
+from sqlalchemy import event, select
 import sqlalchemy.dialects.postgresql as pg
 from sqlalchemy.orm import RelationshipProperty, attributes, joinedload, object_mapper
 from sqlalchemy.orm.exc import UnmappedColumnError
@@ -20,11 +20,6 @@ class ActivityPermission(str, Enum):
     Read = "activity:read"
 
 
-@contextmanager
-def activity_query():
-    yield db.Session().query(Activity)
-
-
 #
 async def get_activity(
     org_id: str,
@@ -32,24 +27,29 @@ async def get_activity(
     cursor: str = None,
     include: Optional[List[str]] = None,
 ) -> List[Activity]:
-    with activity_query() as q:
-        q = q.filter(
-            sa.or_(
-                Activity.data_before["org_id"].as_integer() == org_id,
-                Activity.data_after["org_id"].as_integer() == org_id,
-            ),
-        ).order_by(Activity.timestamp.desc())
+    with db.Session() as session:
+        q = (
+            select(Activity)
+            .where(
+                sa.or_(
+                    Activity.data_before["org_id"].as_integer() == org_id,
+                    Activity.data_after["org_id"].as_integer() == org_id,
+                ),
+            )
+            .order_by(Activity.timestamp.desc())
+        )
         q = q.options(joinedload(Activity.profile))
 
         if cursor is not None:
             decoded_cursor = b64decode(cursor).decode()
-            q = q.filter(Activity.timestamp > decoded_cursor)
+            q = q.where(Activity.timestamp > decoded_cursor)
 
         if include is not None:
             for field in include:
                 q = q.options(joinedload(getattr(Activity, field)))
 
-        return q.limit(limit).all()
+        q = q.limit(limit)
+        return session.execute(q).scalars().all()
 
 
 def versioned_objects(iter_):

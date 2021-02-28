@@ -1,6 +1,6 @@
 import factory
 import factory.fuzzy
-from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 import sepal.db as db
 from sepal.accessions.models import Accession, AccessionItem
@@ -9,6 +9,7 @@ from sepal.organizations.models import Organization
 from sepal.profile.models import Profile
 from sepal.taxa.models import Taxon
 
+# We want tests to have their own scoped session
 Session = scoped_session(db.session_factory)
 
 

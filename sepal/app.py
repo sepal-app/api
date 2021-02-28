@@ -44,6 +44,7 @@ async def session_tracking(request: Request, call_next):
 
 @app.middleware("http")
 async def init_scoped_session(request: Request, call_next):
+    """Share the session across the scope of the request."""
     db.Session()
     response = await call_next(request)
     db.Session.remove()

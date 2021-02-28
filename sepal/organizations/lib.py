@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 
 import httpx
 from fastapi import Depends, Path
+from sqlalchemy import delete, select
 from sqlalchemy.orm import object_session
 
 import sepal.db as db
@@ -29,16 +30,6 @@ class OrganizationsPermission(str, Enum):
     Update = "organizations:update"
 
 
-@contextmanager
-def organization_query():
-    yield db.Session().query(Organization)
-
-
-@contextmanager
-def organization_user_query():
-    yield db.Session().query(OrganizationUser)
-
-
 async def verify_org_id(
     current_user_id=Depends(get_current_user),
     org_id: int = Path(...),
@@ -52,12 +43,14 @@ async def verify_org_id(
 
 
 async def is_member(org_id: int, user_id: str, role: Optional[RoleType] = None) -> bool:
-    with organization_user_query() as q:
-        q = q.filter_by(organization_id=org_id, user_id=user_id)
+    with db.Session() as session:
+        q = select(OrganizationUser).filter_by(organization_id=org_id, user_id=user_id)
         if role:
-            q = q.filter_by(role=role)
+            q = q.where(role=role)
 
-        return db.Session().query(q.exists()).scalar()
+        q = select(q.exists())
+
+        return session.execute(q).scalar()
 
 
 async def get_organization_by_id(
@@ -68,87 +61,94 @@ async def get_organization_by_id(
     If a user_id is provided it will only return the organization if the user
     is a member of the organization.
     """
-    with organization_query() as q:
-        q = q.filter_by(id=org_id)
+    with db.Session() as session:
+        q = select(Organization).filter_by(id=org_id)
         if user_id is not None:
-            q = q.join(OrganizationUser).filter(OrganizationUser.user_id == user_id)
+            q = q.join(OrganizationUser).where(OrganizationUser.user_id == user_id)
 
-        return q.first()
+        return session.execute(q).scalars().first()
 
 
 async def get_user_organizations(user_id: str) -> List[Organization]:
     """Get all of the organizations for a user."""
-    with organization_query() as q:
-        return (
-            q.join(OrganizationUser).filter(OrganizationUser.user_id == user_id).all()
+    with db.Session() as session:
+        q = (
+            select(Organization)
+            .join(OrganizationUser)
+            .where(OrganizationUser.user_id == user_id)
         )
+        return session.execute(q).scalars().all()
 
 
 async def get_user_role(org_id: int, user_id: str) -> Optional[RoleType]:
-    with organization_user_query() as q:
-        org_user = q.filter_by(organization_id=org_id, user_id=user_id).first()
-        return org_user.role if org_user else None
+    with db.Session() as session:
+        q = select(OrganizationUser.role).filter_by(
+            organization_id=org_id, user_id=user_id
+        )
+        role = session.execute(q).scalar()
+        return role if role else None
 
 
 async def assign_role(org_id: int, user_id: str, role: RoleType):
     """Assign a user to a role in an organization."""
-    with organization_user_query() as q:
-        org_user_exists = q.filter_by(
-            organization_id=org_id, user_id=user_id, role=role
-        ).exists()
-        session = db.Session()
-        if session.query(org_user_exists).scalar():
+    with db.Session() as session:
+        q = (
+            select(OrganizationUser)
+            .filter_by(organization_id=org_id, user_id=user_id, role=role)
+            .exists()
+        )
+        if session.query(q).scalar():
             return
 
         org_user = OrganizationUser(organization_id=org_id, user_id=user_id, role=role)
         session.add(org_user)
-        session.flush()
+        session.commit()
 
 
 async def remove_role(org_id: int, user_id: str, role: RoleType):
     """Remove a user from a role in an organization."""
-    with organization_user_query() as q:
-        q.filter_by(organization_id=org_id, user_id=user_id).delete()
-        db.Session().flush()
+    with db.Session() as session:
+        q = delete(OrganizationUser).filter_by(organization_id=org_id, user_id=user_id)
+        session.execute(q)
+        session.commit()
 
 
 async def create_organization(user_id: str, data: OrganizationCreate) -> Organization:
-    org = Organization(**data.dict())
-    org_user = OrganizationUser(organization=org, user_id=user_id, role=RoleType.Owner)
-    session = db.Session()
-    session.add_all([org, org_user])
-    session.flush()
-    session.refresh(org)
-    return org
+    with db.Session() as session:
+        org = Organization(**data.dict())
+        org_user = OrganizationUser(
+            organization=org, user_id=user_id, role=RoleType.Owner
+        )
+        session.add_all([org, org_user])
+        session.commit()
+        session.refresh(org)
+        return org
 
 
 async def update_organization(
     org_id: str, data: OrganizationUpdate
 ) -> Optional[Organization]:
-    with organization_query() as q:
-        org = q.filter_by(id=org_id).first()
+    with db.Session() as session:
+        q = select(Organization).filter_by(id=org_id)
+        org = session.execute(q).scalar().first()
         if not org:
             return None
 
         for key, value in data.dict().items():
             setattr(org, key, value)
 
-        session = db.Session()
-        session.flush()
+        session.commit()
         session.refresh(org)
         return org
 
 
 async def get_users(org_id: int) -> List[Tuple[Profile, RoleType]]:
-    return (
-        db.Session()
-        .query(Profile, OrganizationUser.role)
-        .filter(
+    with db.Session() as session:
+        q = select(Profile, OrganizationUser.role).where(
             OrganizationUser.user_id == Profile.user_id,
             OrganizationUser.organization_id == org_id,
         )
-        .all()
-    )
+        return session.execute(q).all()
 
 
 async def invite_user(org_id: int, invited_by_user_id: str, email: str):
@@ -163,9 +163,9 @@ async def invite_user(org_id: int, invited_by_user_id: str, email: str):
         token=token,
     )
 
-    session = db.Session()
-    session.add(invitation)
-    session.flush()
+    with db.Session() as session:
+        session.add(invitation)
+        session.commit()
 
     profile = await get_profile(invited_by_user_id)
     org = await get_organization_by_id(org_id)

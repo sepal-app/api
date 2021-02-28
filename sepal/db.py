@@ -16,8 +16,15 @@ engine = create_engine(
     json_deserializer=lambda obj: orjson.loads(obj),
 )
 
+session_factory = sessionmaker(
+    # TODO: I think expire_on_commit would be better to avoid implicit queries
+    # but it causes deadlocks when dropping the tables in the tests in SA 1.4.0b3
+    #
+    # expire_on_commit=False,
+    bind=engine,
+    future=True,
+)
 
-session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Session = scoped_session(session_factory)
 
 

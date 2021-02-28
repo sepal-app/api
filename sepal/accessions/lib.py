@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from enum import Enum
 from typing import List, Optional
 
+from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 import sepal.db as db
@@ -21,25 +22,20 @@ class AccessionsPermission(str, Enum):
     Delete = "accessions:delete"
 
 
-@contextmanager
-def accession_query():
-    yield db.Session().query(Accession)
-
-
 async def get_accession_by_id(
     accession_id: int,
     org_id: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> Accession:
-    with accession_query() as q:
-        q = q.filter(Accession.id == accession_id)
+    with db.Session() as session:
+        q = select(Accession).where(Accession.id == accession_id)
         if org_id:
-            q = q.filter(Accession.org_id == org_id)
+            q = q.where(Accession.org_id == org_id)
         if include is not None:
             for field in include:
                 q = q.options(joinedload(getattr(Accession, field)))
 
-        return q.first()
+        return session.execute(q).scalars().first()
 
 
 async def get_accessions(
@@ -49,42 +45,45 @@ async def get_accessions(
     cursor: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> List[Accession]:
-    with accession_query() as q:
-        q = q.filter(Accession.org_id == org_id).order_by(Accession.code)
+    with db.Session() as session:
+        q = select(Accession).where(Accession.org_id == org_id).order_by(Accession.code)
 
         if query is not None:
-            q = q.filter(Accession.code.ilike(f"%{query}%"))
+            q = q.where(Accession.code.ilike(f"%{query}%"))
 
         if cursor is not None:
             decoded_cursor = b64decode(cursor).decode()
-            q = q.filter(Accession.code > decoded_cursor)
+            q = q.where(Accession.code > decoded_cursor)
 
         if include is not None:
             for field in include:
                 q = q.options(joinedload(getattr(Accession, field)))
 
-        return q.limit(limit).all()
+        q = q.limit(limit)
+
+        return session.execute(q).scalars().all()
 
 
 async def create_accession(org_id: str, values: AccessionCreate) -> Accession:
-    session = db.Session()
-    accession = Accession(org_id=org_id, **values.dict())
-    session.add(accession)
-    session.commit()
-    session.refresh(accession)
-    return accession
+    with db.Session() as session:
+        accession = Accession(org_id=org_id, **values.dict())
+        session.add(accession)
+        session.commit()
+        session.refresh(accession)
+        return accession
 
 
 async def update_accession(accession_id: int, data: AccessionUpdate) -> Accession:
-    with accession_query() as query:
-        accession = query.get(accession_id)
+    with db.Session() as session:
+        accession = session.get(Accession, accession_id)
 
         # use setattr on the instance instead of using the faster query.update()
         # so that the before_flush event gets fired
         for key, value in data.dict().items():
             setattr(accession, key, value)
 
-        db.Session().commit()
+        session.commit()
+        session.refresh(accession)
         return accession
 
 

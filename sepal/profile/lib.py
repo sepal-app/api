@@ -1,8 +1,6 @@
-from contextlib import contextmanager
 from typing import Optional
 
 from sqlalchemy import select
-from sqlalchemy.orm import object_session
 
 import sepal.db as db
 from .models import Profile

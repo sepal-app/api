@@ -4,7 +4,6 @@ from random import choice
 import pytest
 from fastapi.testclient import TestClient
 
-import sepal.db as db
 from sepal.requestvars import request_global
 from sepal.app import app
 from sepal.organizations.models import OrganizationUser, RoleType

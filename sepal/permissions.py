@@ -1,6 +1,6 @@
 from enum import Enum
 from itertools import chain
-from typing import Union
+from typing import Dict, List, Union
 
 from fastapi import Depends, HTTPException
 
@@ -45,7 +45,7 @@ AllPermissions = list(
 )
 
 # Define the permissions allowed by each role type
-RolePermissions = {
+RolePermissions: Dict[RoleType, List[str]] = {
     RoleType.Guest: [
         AccessionsPermission.Read,
         LocationsPermission.Read,

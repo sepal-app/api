@@ -1,10 +1,9 @@
 from base64 import b64decode
-from contextlib import contextmanager
 from enum import Enum
-from typing import Literal, List, Optional
+from typing import List, Literal, Optional
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, object_session
+from sqlalchemy.orm import joinedload
 
 import sepal.db as db
 
@@ -39,7 +38,7 @@ async def get_taxa(
     org_id: str,
     query: Optional[str] = None,
     limit: int = 50,
-    cursor: str = None,
+    cursor: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> List[Taxon]:
 
@@ -74,13 +73,13 @@ async def create_taxon(org_id: str, values: TaxonCreate) -> Taxon:
         return taxon
 
 
-async def update_taxon(taxon_id: int, data: TaxonUpdate) -> Taxon:
+async def update_taxon(taxon_id: int, values: TaxonUpdate) -> Taxon:
     with db.Session() as session:
         taxon = session.get(Taxon, taxon_id)
 
         # use setattr on the instance instead of using the faster query.update()
         # so that the before_flush event gets fired
-        for key, value in data.dict().items():
+        for key, value in values.dict().items():
             setattr(taxon, key, value)
 
         session.commit()

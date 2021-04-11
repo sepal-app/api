@@ -1,16 +1,13 @@
 from base64 import b64decode
-from contextlib import contextmanager
 from enum import Enum
 from typing import List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy import event, select
-import sqlalchemy.dialects.postgresql as pg
 from sqlalchemy.orm import RelationshipProperty, attributes, joinedload, object_mapper
 from sqlalchemy.orm.exc import UnmappedColumnError
 
 import sepal.db as db
-from sepal.profile.models import Profile
 from sepal.requestvars import request_global
 
 from .models import Activity
@@ -24,7 +21,7 @@ class ActivityPermission(str, Enum):
 async def get_activity(
     org_id: str,
     limit: int = 50,
-    cursor: str = None,
+    cursor: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> List[Activity]:
     with db.Session() as session:

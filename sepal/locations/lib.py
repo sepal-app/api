@@ -1,5 +1,4 @@
 from base64 import b64decode
-from contextlib import contextmanager
 from enum import Enum
 from typing import List, Optional
 
@@ -38,7 +37,7 @@ async def get_locations(
     org_id: str,
     query: Optional[str] = None,
     limit: int = 50,
-    cursor: str = None,
+    cursor: Optional[str] = None,
     include: Optional[List[str]] = None,
 ) -> List[Location]:
     with db.Session() as session:

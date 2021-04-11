@@ -5,7 +5,6 @@ import firebase_admin
 from firebase_admin import credentials
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import event
 
 import sepal.requestvars as requestvars
 import sepal.db as db

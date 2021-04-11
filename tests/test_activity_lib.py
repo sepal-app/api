@@ -1,6 +1,5 @@
 import pytest
 import sqlalchemy as sa
-from sqlalchemy import event
 
 from sepal.activity.lib import init_session_tracking
 from sepal.activity.models import Activity

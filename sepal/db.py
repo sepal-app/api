@@ -2,7 +2,7 @@ import re
 from contextlib import contextmanager
 
 import orjson
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, create_engine, event
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, create_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
 from sqlalchemy.orm import Query, scoped_session, sessionmaker

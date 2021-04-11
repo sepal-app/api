@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+
 from sepal.auth import get_current_user
 
 from .lib import accept_invitation
@@ -13,7 +14,8 @@ router = APIRouter()
     response_class=Response,  # required for 204 response
 )
 async def accept(
-    token: str, current_user_id=Depends(get_current_user),
+    token: str,
+    current_user_id=Depends(get_current_user),
 ):
     if not await accept_invitation(token, current_user_id):
         # The token was invalid

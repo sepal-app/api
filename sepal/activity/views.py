@@ -5,11 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status, 
 from sepal.auth import get_current_user
 from sepal.organizations.lib import verify_org_id
 from sepal.permissions import check_permission
-from sepal.utils import create_schema, make_cursor_link
+from sepal.utils import make_cursor_link
 
 from .lib import ActivityPermission, get_activity
 
-from .models import Activity
 from .schema import ActivitySchema
 
 router = APIRouter()

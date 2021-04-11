@@ -1,12 +1,10 @@
 import secrets
-from contextlib import contextmanager
 from enum import Enum
 from typing import List, Optional, Tuple
 
 import httpx
 from fastapi import Depends, Path
 from sqlalchemy import delete, select
-from sqlalchemy.orm import object_session
 
 import sepal.db as db
 from sepal.auth import get_current_user
@@ -32,8 +30,8 @@ class OrganizationsPermission(str, Enum):
 
 async def verify_org_id(
     current_user_id=Depends(get_current_user),
-    org_id: int = Path(...),
-) -> Optional[int]:
+    org_id: str = Path(...),
+) -> Optional[str]:
     """Return True/False if the current user is a member of an organization."""
     if await is_member(org_id, current_user_id):
         if current_user_id == request_global().current_user_id:
@@ -42,7 +40,7 @@ async def verify_org_id(
     return None
 
 
-async def is_member(org_id: int, user_id: str, role: Optional[RoleType] = None) -> bool:
+async def is_member(org_id: str, user_id: str, role: Optional[RoleType] = None) -> bool:
     with db.Session() as session:
         q = select(OrganizationUser).filter_by(organization_id=org_id, user_id=user_id)
         if role:

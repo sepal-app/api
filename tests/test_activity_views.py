@@ -1,8 +1,7 @@
 import pytest
 
-from sqlalchemy import event
-
 from sepal.activity.lib import init_session_tracking
+from sepal.requestvars import request_global
 
 from .fixtures import *  # noqa: F401,F403
 
@@ -45,7 +44,7 @@ async def test_activity_dummy(
     from sepal.activity.schema import ActivitySchema
 
     activity = await get_activity(org.id)
-    d = ActivitySchema.from_orm(activity[0])
+    ActivitySchema.from_orm(activity[0])
 
 
 def test_activity_list(

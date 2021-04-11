@@ -1,6 +1,6 @@
 import factory
 import factory.fuzzy
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session
 
 import sepal.db as db
 from sepal.accessions.models import Accession, AccessionItem

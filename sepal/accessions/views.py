@@ -98,7 +98,7 @@ async def update(
 
 @router.get("/{accession_id}/items")
 async def list_items(
-    accession_id: int,
+    accession_id: str,
     org_id=Depends(verify_org_id),
     current_user_id=Depends(get_current_user),
     q: Optional[str] = None,
@@ -121,7 +121,7 @@ async def list_items(
 )
 async def create_item(
     accession_item: AccessionItemCreate,
-    accession_id: int,
+    accession_id: str,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
 ) -> AccessionItemSchema:

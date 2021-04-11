@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 
 import sepal.db as db
 from .models import Location
-from .schema import LocationCreate, LocationInDB
+from .schema import LocationCreate, LocationSchema, LocationUpdate
 
 
 class LocationsPermission(str, Enum):
@@ -60,7 +60,7 @@ async def get_locations(
         return session.execute(q).scalars().all()
 
 
-async def create_location(org_id: str, values: LocationCreate) -> LocationInDB:
+async def create_location(org_id: str, values: LocationCreate) -> LocationSchema:
     with db.Session() as session:
         location = Location(org_id=org_id, **values.dict())
         session.add(location)

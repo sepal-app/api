@@ -8,7 +8,7 @@ from .models import Rank
 class TaxonSchemaBase(BaseModel):
     name: str
     rank: Rank
-    parent_id: Optional[int]
+    parent_id: Optional[str]
 
     @validator("rank", pre=True)
     def rank_name(cls, v):
@@ -26,14 +26,10 @@ class TaxonSchemaBase(BaseModel):
 
 
 class TaxonSchema(TaxonSchemaBase):
-    id: int
+    id: str
 
     class Config:
         orm_mode = True
-
-
-class TaxonInDB(TaxonSchema):
-    id: int
 
 
 class TaxonCreate(TaxonSchemaBase):

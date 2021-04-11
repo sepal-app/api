@@ -5,10 +5,20 @@ from typing import List, Optional
 
 from pydantic import Field, create_model
 
+from sepal.accessions.models import Accession
+from sepal.accessions.schema import AccessionSchema
+from sepal.locations.models import Location
+from sepal.locations.schema import LocationSchema
 from sepal.taxa.models import Taxon
 from sepal.taxa.schema import TaxonSchema
 
-mapper_schemas = {Taxon: TaxonSchema}
+# For every mapper relationship that we want to dynamically include as a child
+# in a schema then we need to map the SA mapper to its pydantic schema
+mapper_schemas = {
+    Accession: AccessionSchema,
+    Location: LocationSchema,
+    Taxon: TaxonSchema,
+}
 
 
 def rgetattr(obj, attr, *args):
@@ -35,7 +45,7 @@ def create_schema(base_schema, mapper, include: Optional[List]):
     return create_model(
         "Schema",
         **{
-            # TODO: set the default factory based on if this is a requied field,
+            # TODO: set the default factory based on if this is a required field,
             # e.g. the foreign key is nullable
             field: (
                 get_relationship_schema(mapper, field),

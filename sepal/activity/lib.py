@@ -162,7 +162,9 @@ def init_session_tracking(session):
     event.listen(session, "after_flush", after_flush_listener)
 
     def unregister():
-        event.remove(session, "before_flush", before_flush_listener)
-        event.remove(session, "after_flush", after_flush_listener)
+        if event.contains(session, "before_flush", before_flush_listener):
+            event.remove(session, "before_flush", before_flush_listener)
+        if event.contains(session, "after_flush", after_flush_listener):
+            event.remove(session, "after_flush", after_flush_listener)
 
     return unregister

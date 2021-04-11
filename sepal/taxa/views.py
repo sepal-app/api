@@ -10,7 +10,7 @@ from sepal.utils import create_schema, make_cursor_link
 
 from .lib import TaxaPermission, create_taxon, get_taxa, get_taxon_by_id, update_taxon
 from .models import Taxon
-from .schema import TaxonCreate, TaxonSchema, TaxonInDB
+from .schema import TaxonCreate, TaxonSchema
 
 router = APIRouter()
 
@@ -43,6 +43,7 @@ async def list(
     "",
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(check_permission(TaxaPermission.Create))],
+    response_model=TaxonSchema,
 )
 async def create(
     taxon: TaxonCreate,
@@ -63,7 +64,7 @@ async def detail(
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
     include: Optional[List[str]] = Query(None, regex="^(parent)$"),
-) -> TaxonInDB:
+) -> TaxonSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -84,7 +85,7 @@ async def update(
     taxon: TaxonCreate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-) -> TaxonInDB:
+) -> TaxonSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 

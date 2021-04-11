@@ -5,19 +5,14 @@ from pydantic import BaseModel
 
 class AccessionSchemaBase(BaseModel):
     code: str
-    taxon_id: Optional[int]
+    taxon_id: Optional[str]
 
 
 class AccessionSchema(AccessionSchemaBase):
-    id: int
+    id: str
 
     class Config:
         orm_mode = True
-
-
-class AccessionInDB(AccessionSchema):
-    pass
-    # id: int
 
 
 class AccessionCreate(AccessionSchemaBase):
@@ -30,18 +25,16 @@ class AccessionUpdate(AccessionSchemaBase):
 
 class AccessionItemSchemaBase(BaseModel):
     code: str
-    accession_id: Optional[int]
-    location_id: Optional[int]
+    accession_id: Optional[str]
+    location_id: Optional[str]
     item_type: Literal["plant", "seed", "vegetative", "tissue", "other"]
 
 
 class AccessionItemSchema(AccessionItemSchemaBase):
+    id: str
+
     class Config:
         orm_mode = True
-
-
-class AccessionItemInDB(AccessionItemSchema):
-    id: int
 
 
 class AccessionItemCreate(AccessionItemSchemaBase):

@@ -11,9 +11,9 @@ def test_accessions_list(client, auth_header, org, accession):
     resp = client.get(f"/v1/orgs/{org.id}/accessions", headers=auth_header)
     assert resp.status_code == 200, resp.content
     accessions_json = resp.json()
-    assert accessions_json[0]["id"] == accession.id
+    assert accessions_json[0]["id"] == str(accession.id)
     assert accessions_json[0]["code"] == accession.code
-    assert accessions_json[0]["taxon_id"] == accession.taxon_id
+    assert accessions_json[0]["taxon_id"] == str(accession.taxon_id)
 
 
 def test_accessions_list_include(client, auth_header, org, accession):
@@ -23,9 +23,9 @@ def test_accessions_list_include(client, auth_header, org, accession):
     assert resp.status_code == 200, resp.content
     accessions_json = resp.json()
     acc = accessions_json[0]
-    assert acc["id"] == accession.id
+    assert acc["id"] == str(accession.id)
     assert acc["code"] == accession.code
-    assert acc["taxon_id"] == accession.taxon_id
+    assert acc["taxon_id"] == str(accession.taxon_id)
     assert acc["taxon"] is not None, acc["taxon"]
     assert acc["taxon"]["id"] == acc["taxon_id"], acc["taxon"]
 
@@ -35,9 +35,9 @@ def test_accessions_create(client, auth_header, make_token, org, taxon):
     resp = client.post(f"/v1/orgs/{org.id}/accessions", headers=auth_header, json=data)
     assert resp.status_code == 201, resp.text
     accession_json = resp.json()
-    assert isinstance(accession_json["id"], int)
+    assert isinstance(accession_json["id"], str)
     assert accession_json["code"] == data["code"]
-    assert accession_json["taxon_id"] == data["taxon_id"]
+    assert accession_json["taxon_id"] == str(data["taxon_id"])
 
 
 def test_accession_detail(client, auth_header, org, accession):
@@ -46,9 +46,9 @@ def test_accession_detail(client, auth_header, org, accession):
     )
     assert resp.status_code == 200, resp.text
     accession_json = resp.json()
-    assert accession_json["id"] == accession.id
+    assert accession_json["id"] == str(accession.id)
     assert accession_json["code"] == accession.code
-    assert accession_json["taxon_id"] == accession.taxon_id
+    assert accession_json["taxon_id"] == str(accession.taxon_id)
 
 
 def test_accession_detail_missing(client, auth_header, org, accession):
@@ -57,18 +57,6 @@ def test_accession_detail_missing(client, auth_header, org, accession):
         f"/v1/orgs/{org.id}/accessions/{other_accession_id}", headers=auth_header
     )
     assert resp.status_code == 404
-
-
-# def test_accession_items_list(client, auth_header, org, accession, accession_item):
-#     resp = client.get(
-#         f"/v1/orgs/{org.id}/accessions/{accession.id}/items", headers=auth_header
-#     )
-#     assert resp.status_code == 200, resp.content
-#     items_json = resp.json()
-#     assert items_json[0]["id"] == accession_item.id
-#     assert items_json[0]["code"] == accession_item.code
-#     assert items_json[0]["accession_id"] == accession_item.accession_id
-#     assert items_json[0]["location_id"] == accession_item.location_id
 
 
 def validate_links_header(links, limit):
@@ -117,6 +105,30 @@ def test_accessions_list_pagination(
     # assert the number of pages times the page length plus the left over is the
     # correct number of items
     assert (page_ctr - 1) * limit + len(accessions) % limit == len(accessions)
+
+
+# def test_accessions_list(client, auth_header, org, accession):
+#     resp = client.get(f"/v1/orgs/{org.id}/accessions", headers=auth_header)
+#     assert resp.status_code == 200, resp.content
+#     accessions_json = resp.json()
+#     assert accessions_json[0]["id"] == accession.id
+#     assert accessions_json[0]["code"] == accession.code
+#     assert accessions_json[0]["taxon_id"] == accession.taxon_id
+
+
+def test_accession_items_list(
+    client, auth_header, current_user_id, org, accession, accession_item
+):
+    resp = client.get(
+        f"/v1/orgs/{org.id}/accessions/{accession.id}/items", headers=auth_header
+    )
+    # TODO: test that if we include that locations they also get returned in the response
+    assert resp.status_code == 200, resp.content
+    items_json = resp.json()
+    assert items_json[0]["id"] == str(accession_item.id)
+    assert items_json[0]["code"] == accession_item.code
+    assert items_json[0]["accession_id"] == str(accession_item.accession_id)
+    assert items_json[0]["location_id"] == str(accession_item.location_id)
 
 
 # def test_accession_items_create(

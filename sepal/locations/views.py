@@ -9,7 +9,7 @@ from sepal.utils import create_schema, make_cursor_link
 
 from .lib import LocationsPermission, create_location, get_location_by_id, get_locations
 from .models import Location
-from .schema import LocationCreate, LocationInDB, LocationSchema
+from .schema import LocationCreate, LocationSchema
 
 router = APIRouter()
 
@@ -45,12 +45,13 @@ async def list(
     "",
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(check_permission(LocationsPermission.Create))],
+    response_model=LocationSchema,
 )
 async def create(
     location: LocationCreate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
-) -> LocationInDB:
+) -> LocationSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return await create_location(org_id, location)
@@ -66,7 +67,7 @@ async def detail(
     org_id=Depends(verify_org_id),
     # TODO: what can we include
     include: Optional[List["str"]] = Query(None),
-) -> LocationInDB:
+) -> LocationSchema:
     if org_id is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 

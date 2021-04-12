@@ -15,7 +15,7 @@ def test_taxon_rank_enum_constraint_fails(session, org):
 
 
 def test_taxon_rank_enum_constraint(session, org):
-    taxon = Taxon(org_id=org.id, name="1234", rank="family")
+    taxon = Taxon(org_id=org.id, name="1234", rank=Rank.Family)
     session.add(taxon)
     session.commit()
     assert isinstance(taxon.id, int)

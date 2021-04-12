@@ -44,7 +44,7 @@ def create_schema(base_schema, mapper, include: Optional[List]):
 
     return create_model(
         "Schema",
-        **{
+        **{  # type: ignore
             # TODO: set the default factory based on if this is a required field,
             # e.g. the foreign key is nullable
             field: (

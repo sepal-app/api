@@ -10,7 +10,7 @@ from sepal.utils import create_schema, make_cursor_link
 
 from .lib import TaxaPermission, create_taxon, get_taxa, get_taxon_by_id, update_taxon
 from .models import Taxon
-from .schema import TaxonCreate, TaxonSchema
+from .schema import TaxonCreate, TaxonSchema, TaxonUpdate
 
 router = APIRouter()
 
@@ -82,7 +82,7 @@ async def detail(
 )
 async def update(
     taxon_id: int,
-    taxon: TaxonCreate,
+    taxon: TaxonUpdate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
 ) -> TaxonSchema:

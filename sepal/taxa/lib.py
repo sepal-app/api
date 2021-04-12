@@ -1,6 +1,6 @@
 from base64 import b64decode
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -21,7 +21,7 @@ class TaxaPermission(str, Enum):
 async def get_taxon_by_id(
     taxon_id: int,
     org_id: Optional[str] = None,
-    include: Optional[List[Literal["parent"]]] = None,
+    include: Optional[List[str]] = None,
 ) -> Taxon:
     with db.Session() as session:
         q = select(Taxon).where(Taxon.id == taxon_id)

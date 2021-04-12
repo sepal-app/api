@@ -66,3 +66,17 @@ async def create_location(org_id: str, values: LocationCreate) -> LocationSchema
         session.commit()
         session.refresh(location)
         return location
+
+
+async def update_location(location_id: str, values: LocationUpdate) -> LocationSchema:
+    with db.Session() as session:
+        location = session.get(Location, location_id)
+
+        # use setattr on the instance instead of using the faster query.update()
+        # so that the before_flush event gets fired
+        for key, value in values.dict().items():
+            setattr(location, key, value)
+
+        session.commit()
+        session.refresh()
+        return location

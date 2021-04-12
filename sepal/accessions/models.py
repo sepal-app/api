@@ -2,7 +2,7 @@ import enum
 from typing import Literal
 
 from sqlalchemy import Column, Enum, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, declared_attr, relationship
 from sqlalchemy.schema import UniqueConstraint
 
 from sepal.db import Model
@@ -17,7 +17,11 @@ AccessionPermission = Literal[
 
 class Accession(Model):
     __track_activity__ = True
-    __table_args__ = (UniqueConstraint("org_id", "code"), {"extend_existing": True})
+
+    @declared_attr
+    def __table_args__(cls):
+        """Return the arguments for Table()."""
+        return (UniqueConstraint("org_id", "code"), Model.__table_args__)
 
     code = Column(String(64), nullable=False)
     taxon_id = Column(Integer, ForeignKey("taxon.id"), nullable=False)
@@ -40,6 +44,11 @@ AccessionItemType = enum.Enum(
 
 class AccessionItem(Model):
     __track_activity__ = True
+
+    @declared_attr
+    def __table_args__(cls):
+        """Return the arguments for Table()."""
+        return (UniqueConstraint("org_id", "code"), Model.__table_args__)
 
     code = Column(String(12), nullable=False)
     item_type = Column(String, Enum(AccessionItemType), nullable=False)

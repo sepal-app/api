@@ -21,6 +21,7 @@ from .schema import (
     AccessionItemUpdate,
     AccessionItemSchema,
     AccessionSchema,
+    AccessionUpdate,
 )
 from sepal.organizations.lib import verify_org_id
 
@@ -86,7 +87,7 @@ async def detail(
 @router.patch("/{accession_id}")
 async def update(
     accession_id: int,
-    accession: AccessionCreate,
+    accession: AccessionUpdate,
     current_user_id=Depends(get_current_user),
     org_id=Depends(verify_org_id),
 ) -> AccessionSchema:

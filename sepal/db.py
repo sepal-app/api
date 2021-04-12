@@ -1,11 +1,10 @@
 import re
-from contextlib import contextmanager
 
 import orjson
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, create_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base, declared_attr
-from sqlalchemy.orm import Query, scoped_session, sessionmaker
+from sqlalchemy.orm import Query, declarative_mixin, scoped_session, sessionmaker
 from sqlalchemy.sql import expression
 
 from sepal.settings import settings
@@ -26,23 +25,6 @@ session_factory = sessionmaker(
 )
 
 Session = scoped_session(session_factory)
-
-
-@contextmanager
-def with_transaction():
-    """Provide a transactional scope around a series of operations."""
-    yield Session()
-    return
-    session = session_factory()
-
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
 class BaseMetaclass(DeclarativeMeta):
@@ -68,26 +50,16 @@ def pg_utcnow(element, compiler, **kw):
 
 # From Mike Bayer's "Building the app" talk
 # https://speakerdeck.com/zzzeek/building-the-app
-class IdMixin(object):
+@declarative_mixin
+class IdMixin:
     """A mixin that adds a surrogate integer 'primary key' column named ``id``."""
 
     __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True)
 
-    @classmethod
-    def get_by_id(cls, record_id):
-        """Get record by ID."""
-        if any(
-            (
-                isinstance(record_id, str) and record_id.isdigit(),
-                isinstance(record_id, (int, float)),
-            )
-        ):
-            return cls.query.get(int(record_id))
-        return None
 
-
+@declarative_mixin
 class TimestampMixin:
     """A mixin that adds ``created_at`` and ``updated_at`` timestamps columns."""
 
@@ -99,7 +71,7 @@ class TimestampMixin:
     )
 
 
-class BaseModel(Base):
+class BaseModel(Base):  # type: ignore
     """Base model class that includes CRUD convenience methods."""
 
     __abstract__ = True

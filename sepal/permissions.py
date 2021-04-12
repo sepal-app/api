@@ -33,7 +33,7 @@ PermissionType = Union[
     TaxaPermission,
 ]
 
-AllPermissions = list(
+AllPermissions: List[PermissionType] = list(
     chain(
         AccessionsPermission,
         ActivityPermission,
@@ -45,18 +45,21 @@ AllPermissions = list(
 )
 
 # Define the permissions allowed by each role type
-RolePermissions: Dict[RoleType, List[str]] = {
-    RoleType.Guest: [
-        AccessionsPermission.Read,
-        LocationsPermission.Read,
-        TaxaPermission.Read,
-    ],
-    RoleType.Member: list(AccessionsPermission)
-    + list(ActivityPermission)
-    + list(LocationsPermission)
-    + list(TaxaPermission),
-}
+RolePermissions: Dict[RoleType, List[PermissionType]] = {}
 
+# Guests
+RolePermissions[RoleType.Guest] = [
+    AccessionsPermission.Read,
+    LocationsPermission.Read,
+    TaxaPermission.Read,
+]
+
+# Organization Members
+RolePermissions[RoleType.Member] = list(
+    chain(AccessionsPermission, ActivityPermission, LocationsPermission, TaxaPermission)
+)
+
+# Organization Admins
 RolePermissions[RoleType.Admin] = (
     RolePermissions[RoleType.Member]
     + [
@@ -69,6 +72,7 @@ RolePermissions[RoleType.Admin] = (
     + list(PermissionsPermission)
 )
 
+# Organization Owners
 RolePermissions[RoleType.Owner] = RolePermissions[RoleType.Admin] + [
     OrganizationsPermission.Delete
 ]
@@ -85,4 +89,6 @@ def check_permission(permission: PermissionType):
 async def has_permission(org_id: int, user_id: str, permission: PermissionType):
     """Return True if the user has a permission in an organization."""
     role = await get_user_role(org_id, user_id)
+    if role is None:
+        return False
     return permission in RolePermissions.get(role, [])

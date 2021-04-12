@@ -10,6 +10,7 @@ class AccessionSchemaBase(BaseModel):
 
 class AccessionSchema(AccessionSchemaBase):
     id: str
+    taxon_id: str
 
     class Config:
         orm_mode = True
